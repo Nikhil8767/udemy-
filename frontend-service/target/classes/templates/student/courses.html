@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>Browse Courses</title>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Browse Courses</h1>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <div th:each="course : ${courses}" class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <img th:if="${course.thumbnailUrl != null}" th:src="${course.thumbnailUrl}" class="card-img-top" alt="Course Thumbnail" style="height: 180px; object-fit: cover;">
+                    <img th:unless="${course.thumbnailUrl != null}" src="https://via.placeholder.com/300x180?text=No+Thumbnail" class="card-img-top" alt="Course Thumbnail">
+                    
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="badge bg-primary text-uppercase" th:text="${course.categoryName}">Category</span>
+                            <span class="badge bg-secondary ms-1" th:text="${course.courseLevel}">Level</span>
+                        </div>
+                        <h5 class="card-title fw-bold" th:text="${course.title}">Course Title</h5>
+                        <p class="card-text text-muted flex-grow-1" th:text="${course.shortDescription}">Description</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <h6 class="mb-0 fw-bold text-success" th:if="${course.price > 0}" th:text="${course.currency} + ' ' + ${course.price}">$99.99</h6>
+                            <h6 class="mb-0 fw-bold text-success" th:unless="${course.price > 0}">FREE</h6>
+                            
+                            <a th:href="@{/courses/{id}(id=${course.id})}" class="btn btn-outline-primary btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div th:if="${courses == null || courses.empty}" class="col-12">
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-info-circle me-2"></i> No published courses are available at the moment.
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

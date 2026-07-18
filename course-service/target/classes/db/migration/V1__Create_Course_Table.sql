@@ -1,0 +1,23 @@
+CREATE TABLE courses (
+    id UUID PRIMARY KEY,
+    title VARCHAR(255) NOT NULL UNIQUE,
+    subtitle VARCHAR(500),
+    description TEXT NOT NULL,
+    short_description VARCHAR(500),
+    thumbnail_url VARCHAR(500),
+    banner_url VARCHAR(500),
+    language VARCHAR(100),
+    course_level VARCHAR(50),
+    course_status VARCHAR(50),
+    category VARCHAR(100),
+    price DECIMAL(10, 2),
+    discount_price DECIMAL(10, 2),
+    currency VARCHAR(10),
+    estimated_duration_hours DECIMAL(5, 2),
+    instructor_id UUID NOT NULL,
+    created_by UUID NOT NULL,
+    updated_by UUID,
+    published_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);

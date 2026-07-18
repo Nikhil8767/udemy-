@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="header">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+            <div class="container">
+                <a class="navbar-brand text-primary" th:href="@{/}">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Enterprise LMS
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/courses}">Courses</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <!-- Unauthenticated User -->
+                        <li class="nav-item" th:if="${session.userEmail == null}">
+                            <a class="nav-link" th:href="@{/login}">Login</a>
+                        </li>
+                        <li class="nav-item" th:if="${session.userEmail == null}">
+                            <a class="btn btn-primary ms-2" th:href="@{/register}">Register</a>
+                        </li>
+                        
+                        <!-- Authenticated User -->
+                        <li class="nav-item dropdown" th:if="${session.userEmail != null}">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <img th:if="${session.userProfileImageUrl != null and !session.userProfileImageUrl.isEmpty()}" th:src="${session.userProfileImageUrl}" class="rounded-circle me-2" style="width: 28px; height: 28px; object-fit: cover;">
+                                <img th:unless="${session.userProfileImageUrl != null and !session.userProfileImageUrl.isEmpty()}" th:src="'https://ui-avatars.com/api/?name=' + ${session.userDisplayName != null ? session.userDisplayName : session.userEmail} + '&background=0D8ABC&color=fff'" class="rounded-circle me-2" style="width: 28px; height: 28px;">
+                                <span th:text="${session.userDisplayName != null ? session.userDisplayName : session.userEmail}">User</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" th:if="${session.userRole == 'ROLE_ADMIN'}" th:href="@{/admin/dashboard}">Dashboard</a>
+                                    <a class="dropdown-item" th:if="${session.userRole == 'ROLE_TUTOR'}" th:href="@{/tutor/dashboard}">Dashboard</a>
+                                    <a class="dropdown-item" th:if="${session.userRole == 'ROLE_STUDENT'}" th:href="@{/student/dashboard}">Dashboard</a>
+                                </li>
+                                <li><a class="dropdown-item" th:href="@{/profile}">Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" th:href="@{/logout}">Logout</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+</body>
+</html>

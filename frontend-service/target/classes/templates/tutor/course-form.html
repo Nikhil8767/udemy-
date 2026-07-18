@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title th:text="${courseId != null ? 'Edit Course' : 'Create Course'}">Course Form</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 th:text="${courseId != null ? 'Edit Course' : 'Create New Course'}">Course Form</h2>
+        <a th:href="@{/tutor/courses}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form th:action="${courseId != null ? '/tutor/courses/' + courseId + '/edit' : '/tutor/courses/create'}" 
+                  th:object="${courseRequest}" method="post">
+                
+                <h5 class="mb-3 border-bottom pb-2">Basic Information</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="title" class="form-label">Course Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" th:field="*{title}" placeholder="E.g., Advanced Spring Boot 3" required>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="subtitle" class="form-label">Subtitle</label>
+                        <input type="text" class="form-control" id="subtitle" th:field="*{subtitle}" placeholder="Catchy one-liner about the course">
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('subtitle')}" th:errors="*{subtitle}"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="shortDescription" class="form-label">Short Description</label>
+                        <textarea class="form-control" id="shortDescription" th:field="*{shortDescription}" rows="2" placeholder="Brief summary for course cards..."></textarea>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('shortDescription')}" th:errors="*{shortDescription}"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <label for="description" class="form-label">Full Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" th:field="*{description}" rows="5" placeholder="Detailed description of what the course covers..." required></textarea>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3 border-bottom pb-2">Media & Categorization</h5>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="thumbnailUrl" class="form-label">Thumbnail URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="thumbnailUrl" th:field="*{thumbnailUrl}" placeholder="https://example.com/image.jpg" required>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('thumbnailUrl')}" th:errors="*{thumbnailUrl}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="bannerUrl" class="form-label">Banner URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="bannerUrl" th:field="*{bannerUrl}" placeholder="https://example.com/banner.jpg" required>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('bannerUrl')}" th:errors="*{bannerUrl}"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label for="categoryId" class="form-label">Category <span class="text-danger">*</span></label>
+                        <select class="form-select" id="categoryId" th:field="*{categoryId}" required>
+                            <option value="">Select Category</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="courseLevel" class="form-label">Course Level <span class="text-danger">*</span></label>
+                        <select class="form-select" id="courseLevel" th:field="*{courseLevel}" required>
+                            <option value="BEGINNER">Beginner</option>
+                            <option value="INTERMEDIATE">Intermediate</option>
+                            <option value="ADVANCED">Advanced</option>
+                            <option value="ALL_LEVELS">All Levels</option>
+                        </select>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('courseLevel')}" th:errors="*{courseLevel}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="language" class="form-label">Language <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="language" th:field="*{language}" required>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('language')}" th:errors="*{language}"></div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3 border-bottom pb-2">Pricing & Duration</h5>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label for="currency" class="form-label">Currency <span class="text-danger">*</span></label>
+                        <select class="form-select" id="currency" th:field="*{currency}" required>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                            <option value="INR">INR (₹)</option>
+                        </select>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('currency')}" th:errors="*{currency}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
+                        <input type="number" step="0.01" class="form-control" id="price" th:field="*{price}" required>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="discountPrice" class="form-label">Discount Price</label>
+                        <input type="number" step="0.01" class="form-control" id="discountPrice" th:field="*{discountPrice}">
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('discountPrice')}" th:errors="*{discountPrice}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="estimatedDurationMinutes" class="form-label">Duration (Minutes) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="estimatedDurationMinutes" th:field="*{estimatedDurationMinutes}" required>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('estimatedDurationMinutes')}" th:errors="*{estimatedDurationMinutes}"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save"></i> <span th:text="${courseId != null ? 'Save Changes' : 'Create Course'}">Save</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

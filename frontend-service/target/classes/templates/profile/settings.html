@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>Profile Settings</title>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Profile Settings</h1>
+        </div>
+        
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        
+        <div class="card shadow-sm border-0" th:if="${profile != null}">
+            <div class="card-body p-4">
+                <form th:action="@{/profile/settings}" method="post" th:object="${profile}">
+                    <h5 class="mb-3 border-bottom pb-2">Basic Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="firstName" th:value="${profile.firstName}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="lastName" th:value="${profile.lastName}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Display Name (Public) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="displayName" th:value="${profile.displayName}" required placeholder="e.g. Jane Doe">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="phoneNumber" th:value="${profile.phoneNumber}" required placeholder="+1234567890">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Email (Read-Only)</label>
+                            <input type="email" class="form-control bg-light" th:value="${#authentication.name}" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Profile Image URL <span class="text-danger">*</span></label>
+                            <input type="url" class="form-control" name="profileImageUrl" th:value="${profile.profileImageUrl}" required placeholder="https://example.com/photo.jpg">
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3 mt-4 border-bottom pb-2">Professional Details</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Headline (Bio) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="bio" th:value="${profile.bio}" required placeholder="e.g. Senior Java Instructor">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Detailed About <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="about" rows="4" th:text="${profile.about}" required placeholder="Write a detailed description about your experience..."></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Qualifications <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="qualifications" rows="2" th:text="${profile.qualifications}" required placeholder="Degrees, Certifications, etc."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teaching Experience <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="teachingExperience" rows="2" th:text="${profile.teachingExperience}" required placeholder="How long have you been teaching?"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Skills <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="skills" th:value="${profile.skills}" required placeholder="e.g. Java, Python, Spring Boot">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Preferred Language <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="preferredLanguage" th:value="${profile.preferredLanguage}" required placeholder="e.g. English">
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3 mt-4 border-bottom pb-2">Location & Social</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Country <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="country" th:value="${profile.country}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">State/Province <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="state" th:value="${profile.state}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">City <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="city" th:value="${profile.city}" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">LinkedIn URL <span class="text-danger">*</span></label>
+                            <input type="url" class="form-control" name="linkedinUrl" th:value="${profile.linkedinUrl}" required placeholder="https://linkedin.com/in/you">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Portfolio Website <span class="text-danger">*</span></label>
+                            <input type="url" class="form-control" name="websiteUrl" th:value="${profile.websiteUrl}" required placeholder="https://yourwebsite.com">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary px-4 py-2">Save Profile</button>
+                    <a href="/profile" class="btn btn-outline-secondary ms-2 py-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

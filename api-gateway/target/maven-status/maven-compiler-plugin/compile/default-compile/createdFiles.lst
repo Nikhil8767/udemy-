@@ -1,0 +1,9 @@
+com\lms\gateway\filter\HeaderForwardingFilter.class
+com\lms\gateway\security\JwtUtils.class
+com\lms\gateway\security\JwtAccessDeniedHandler.class
+com\lms\gateway\security\JwtAuthenticationEntryPoint.class
+com\lms\gateway\security\JwtAuthenticationToken.class
+com\lms\gateway\config\SecurityConfig.class
+com\lms\gateway\security\JwtAuthenticationFilter.class
+com\lms\gateway\security\SecurityResponseWriter.class
+com\lms\gateway\ApiGatewayApplication.class

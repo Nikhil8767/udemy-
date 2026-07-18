@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title th:text="${course != null ? course.title : 'Course Details'}">Course Details</title>
+</head>
+<body>
+    <main layout:fragment="content">
+        
+        <!-- Alerts -->
+        <div class="container mt-4">
+            <div th:replace="~{fragments/alerts :: alerts}"></div>
+        </div>
+
+        <div class="container py-5" th:if="${course != null}">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="fw-bold mb-3" th:text="${course.title}">Course Title</h1>
+                    <p class="lead text-muted mb-4" th:text="${course.subtitle}">Course Subtitle</p>
+                    
+                    <div class="d-flex align-items-center mb-4 gap-3">
+                        <span class="badge bg-primary" th:text="${course.categoryName}">Category</span>
+                        <span class="text-muted"><i class="bi bi-bar-chart-fill me-1"></i> <span th:text="${course.courseLevel}">Level</span></span>
+                        <span class="text-muted"><i class="bi bi-translate me-1"></i> <span th:text="${course.language}">English</span></span>
+                        <span class="text-muted"><i class="bi bi-clock me-1"></i> <span th:text="${course.estimatedDurationMinutes}">120</span> mins</span>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <img th:if="${course.bannerUrl != null}" th:src="${course.bannerUrl}" class="card-img-top" alt="Course Banner" style="max-height: 400px; object-fit: cover;">
+                        <img th:unless="${course.bannerUrl != null}" src="https://via.placeholder.com/800x400?text=Course+Banner" class="card-img-top" alt="Course Banner">
+                    </div>
+
+                    <h3 class="fw-bold mb-3">About This Course</h3>
+                    <div class="mb-5" th:utext="${course.description}">
+                        Course description goes here...
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow-sm border-0 sticky-top" style="top: 2rem;">
+                        <div class="card-body p-4">
+                            <h2 class="fw-bold mb-3 text-success">
+                                <span th:if="${course.price > 0}" th:text="${course.currency} + ' ' + ${course.price}">$99.99</span>
+                                <span th:unless="${course.price > 0}">FREE</span>
+                            </h2>
+                            
+                            <form th:action="@{/student/enroll}" method="post">
+                                <input type="hidden" name="courseId" th:value="${course.id}">
+                                <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">Enroll Now</button>
+                            </form>
+                            
+                            <p class="text-center text-muted small mb-0">Full Lifetime Access</p>
+                            
+                            <hr class="my-4">
+                            
+                            <h5 class="fw-bold mb-3">Course Includes:</h5>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="bi bi-play-circle text-primary me-2"></i> On-demand video</li>
+                                <li class="mb-2"><i class="bi bi-file-earmark-text text-primary me-2"></i> Downloadable resources</li>
+                                <li class="mb-2"><i class="bi bi-phone text-primary me-2"></i> Access on mobile and TV</li>
+                                <li><i class="bi bi-award text-primary me-2"></i> Certificate of completion</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

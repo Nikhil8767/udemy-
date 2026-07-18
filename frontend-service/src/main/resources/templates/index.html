@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Home</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        
+        <!-- Hero Section -->
+        <section class="hero-section text-center">
+            <div class="container">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+                <h1 class="display-4 fw-bold mb-4">Advance Your Career with Enterprise LMS</h1>
+                <p class="lead mb-5">Master new skills with our professional online courses designed for modern enterprises.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a th:href="@{/courses}" class="btn btn-light btn-lg px-4 font-weight-bold text-primary">Browse Courses</a>
+                    <a th:if="${session.userEmail == null}" th:href="@{/register}" class="btn btn-outline-light btn-lg px-4">Sign Up for Free</a>
+                    <a th:if="${session.userEmail != null}" th:href="@{/student/dashboard}" class="btn btn-outline-light btn-lg px-4">My Dashboard</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="py-5">
+            <div class="container py-4">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm p-4">
+                            <i class="bi bi-laptop display-4 text-primary mb-3"></i>
+                            <h3 class="h5">Learn Anywhere</h3>
+                            <p class="text-muted">Access our courses on any device, anywhere in the world.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm p-4">
+                            <i class="bi bi-award display-4 text-primary mb-3"></i>
+                            <h3 class="h5">Expert Instructors</h3>
+                            <p class="text-muted">Learn from industry professionals with real-world experience.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border-0 shadow-sm p-4">
+                            <i class="bi bi-briefcase display-4 text-primary mb-3"></i>
+                            <h3 class="h5">Enterprise Ready</h3>
+                            <p class="text-muted">Curriculum designed to meet modern enterprise demands.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </div>
+</body>
+</html>

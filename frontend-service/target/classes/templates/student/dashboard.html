@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>Student Dashboard</title>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Student Dashboard</h1>
+        </div>
+        
+        <!-- Alerts -->
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Welcome to your Student Dashboard</h5>
+                        <p class="card-text">From here you can access your enrolled courses, view your progress, and manage your profile.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

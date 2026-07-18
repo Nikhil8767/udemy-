@@ -1,0 +1,9 @@
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\ApiGatewayApplication.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\config\SecurityConfig.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\filter\HeaderForwardingFilter.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\security\JwtAccessDeniedHandler.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\security\JwtAuthenticationEntryPoint.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\security\JwtAuthenticationFilter.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\security\JwtAuthenticationToken.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\security\JwtUtils.java
+C:\Users\Hp\Desktop\new journey\final LMS\api-gateway\src\main\java\com\lms\gateway\security\SecurityResponseWriter.java

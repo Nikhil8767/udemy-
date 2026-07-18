@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>500 Internal Server Error</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container text-center py-5 mt-5">
+            <h1 class="display-1 fw-bold text-danger">500</h1>
+            <h2 class="mb-4">Internal Server Error</h2>
+            <p class="lead text-muted mb-5">Something went wrong on our end. Please try again later.</p>
+            <a th:href="@{/}" class="btn btn-primary btn-lg"><i class="bi bi-house-door me-2"></i>Return to Home</a>
+        </div>
+    </div>
+</body>
+</html>

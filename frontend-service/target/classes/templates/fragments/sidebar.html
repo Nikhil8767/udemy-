@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="sidebar">
+        <ul class="nav flex-column mb-auto">
+            <!-- Student Links -->
+            <th:block th:if="${session.userRole == 'ROLE_STUDENT'}">
+                <li class="nav-item">
+                    <a th:href="@{/student/dashboard}" class="nav-link text-dark">
+                        <i class="bi bi-house-door me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/student/my-courses}" class="nav-link text-dark">
+                        <i class="bi bi-book me-2"></i> My Courses
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/student/certificates}" class="nav-link text-dark">
+                        <i class="bi bi-award me-2"></i> Certificates
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/student/notifications}" class="nav-link text-dark">
+                        <i class="bi bi-bell me-2"></i> Notifications
+                    </a>
+                </li>
+            </th:block>
+
+            <!-- Tutor Links -->
+            <th:block th:if="${session.userRole == 'ROLE_TUTOR'}">
+                <li class="nav-item">
+                    <a th:href="@{/tutor/dashboard}" class="nav-link text-dark">
+                        <i class="bi bi-house-door me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/tutor/courses}" class="nav-link text-dark">
+                        <i class="bi bi-journal-album me-2"></i> My Courses
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/tutor/courses/create}" class="nav-link text-dark">
+                        <i class="bi bi-plus-circle me-2"></i> Create Course
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-dark disabled" aria-disabled="true">
+                        <i class="bi bi-bar-chart me-2"></i> Analytics
+                    </a>
+                </li>
+            </th:block>
+
+            <!-- Admin Links -->
+            <th:block th:if="${session.userRole == 'ROLE_ADMIN'}">
+                <li class="nav-item">
+                    <a th:href="@{/admin/dashboard}" class="nav-link text-dark">
+                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/users}" class="nav-link text-dark">
+                        <i class="bi bi-people me-2"></i> Users
+                    </a>
+                </li>
+            </th:block>
+
+            <li class="nav-item mt-4">
+                <a th:href="@{/profile}" class="nav-link text-dark">
+                    <i class="bi bi-person me-2"></i> Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a th:href="@{/logout}" class="nav-link text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

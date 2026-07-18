@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>My Certificates</title>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">My Certificates</h1>
+        </div>
+        
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        
+        <div class="alert alert-info text-center" role="alert">
+            <i class="bi bi-info-circle me-2"></i> You have not earned any certificates yet. Complete a course to earn one!
+        </div>
+    </main>
+</body>
+</html>

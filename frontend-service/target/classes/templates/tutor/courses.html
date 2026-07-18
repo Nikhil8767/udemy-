@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>My Courses - LMS Tutor</title>
+    <style>
+        .course-row:hover { background: rgba(99,102,241,0.03); }
+        .course-thumb { width: 80px; height: 50px; object-fit: cover; border-radius: 6px; background: #f3f4f6; }
+        .stat-pill { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; padding: 0.25rem 0.65rem; border-radius: 20px; background: rgba(0,0,0,0.05); color: #6b7280; }
+        .checklist-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.875rem; }
+        .checklist-item:last-child { border-bottom: none; }
+        .check-icon { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; }
+        .check-ok { background: rgba(16,185,129,0.15); color: #10b981; }
+        .check-warn { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">My Courses</h2>
+            <p class="text-muted small mb-0">Manage and publish your course catalog</p>
+        </div>
+        <a th:href="@{/tutor/courses/create}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Create New Course
+        </a>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <!-- Courses table -->
+    <div class="card shadow-sm border-0" th:if="${courses != null and !courses.isEmpty()}">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light border-bottom">
+                        <tr>
+                            <th class="ps-4">Course</th>
+                            <th>Status</th>
+                            <th>Students</th>
+                            <th>Price</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="course-row" th:each="course : ${courses}">
+                            <!-- Course info -->
+                            <td class="ps-4 py-3" style="min-width: 260px;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="${course.thumbnailUrl != null ? course.thumbnailUrl : ''}"
+                                         class="course-thumb"
+                                         alt="Thumbnail"
+                                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2250%22><rect width=%2280%22 height=%2250%22 fill=%22%23e5e7eb%22/><text x=%2240%22 y=%2230%22 text-anchor=%22middle%22 fill=%22%239ca3af%22 font-size=%2210%22>No Image</text></svg>'">
+                                    <div>
+                                        <div class="fw-semibold" th:text="${course.title}">Course Title</div>
+                                        <div class="text-muted small" th:text="${course.categoryName ?: 'Uncategorized'}">Category</div>
+                                        <div class="mt-1 d-flex gap-1 flex-wrap">
+                                            <span class="stat-pill" th:if="${course.courseLevel != null}">
+                                                <i class="bi bi-bar-chart-line"></i>
+                                                <span th:text="${course.courseLevel}">Level</span>
+                                            </span>
+                                            <span class="stat-pill" th:if="${course.language != null}">
+                                                <i class="bi bi-translate"></i>
+                                                <span th:text="${course.language}">English</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Status badge -->
+                            <td>
+                                <span class="badge fs-7 rounded-pill px-3 py-2"
+                                      th:classappend="${course.courseStatus == 'PUBLISHED'} ? 'bg-success' : (${course.courseStatus == 'DRAFT'} ? 'bg-secondary' : 'bg-warning text-dark')"
+                                      th:text="${course.courseStatus}">DRAFT</span>
+                                <div th:if="${course.publishedAt != null}" class="text-muted" style="font-size:0.72rem; margin-top:2px;">
+                                    Published <span th:text="${#temporals.format(course.publishedAt, 'MMM d, yyyy')}"></span>
+                                </div>
+                            </td>
+                            <!-- Students -->
+                            <td>
+                                <div th:if="${course.courseStatus == 'PUBLISHED'}" class="d-flex align-items-center gap-1">
+                                    <i class="bi bi-people-fill text-primary"></i>
+                                    <span class="fw-semibold" th:text="${course.studentCount != null ? course.studentCount : 0}">0</span>
+                                    <span class="text-muted small">enrolled</span>
+                                </div>
+                                <span th:unless="${course.courseStatus == 'PUBLISHED'}" class="text-muted small">—</span>
+                            </td>
+                            <!-- Price -->
+                            <td>
+                                <span th:if="${course.price != null && course.price > 0}" th:text="${(course.currency ?: 'USD') + ' ' + course.price}" class="fw-semibold">$0.00</span>
+                                <span th:if="${course.price == null || course.price == 0}" class="badge bg-success bg-opacity-10 text-success">Free</span>
+                            </td>
+                            <!-- Actions -->
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm">
+                                    <!-- Edit -->
+                                    <a th:href="@{/tutor/courses/{id}/edit(id=${course.id})}"
+                                       class="btn btn-outline-primary" title="Edit Course Details">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <!-- Curriculum -->
+                                    <a th:href="@{/tutor/courses/{id}/curriculum(id=${course.id})}"
+                                       class="btn btn-outline-info" title="Manage Curriculum">
+                                        <i class="bi bi-journal-text"></i>
+                                    </a>
+                                    <!-- Preview (opens student learning view) -->
+                                    <a th:href="@{/tutor/courses/{id}/preview(id=${course.id})}"
+                                       class="btn btn-outline-secondary" title="Preview Course">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <!-- Publish (DRAFT only) -->
+                                    <a th:if="${course.courseStatus == 'DRAFT'}" th:href="@{/tutor/courses/{id}/publish(id=${course.id})}"
+                                            class="btn btn-outline-success" title="Publish Course">
+                                        <i class="bi bi-cloud-upload"></i>
+                                    </a>
+                                    <!-- Archive (PUBLISHED only) -->
+                                    <form th:if="${course.courseStatus == 'PUBLISHED'}"
+                                          th:action="@{/tutor/courses/{id}/archive(id=${course.id})}" method="post"
+                                          class="d-inline" onsubmit="return confirm('Archive this course? Students will lose access.');">
+                                        <button type="submit" class="btn btn-outline-warning" title="Archive Course">
+                                            <i class="bi bi-archive"></i>
+                                        </button>
+                                    </form>
+                                    <!-- Delete (DRAFT or ARCHIVED only) -->
+                                    <form th:if="${course.courseStatus == 'DRAFT' or course.courseStatus == 'ARCHIVED'}"
+                                          th:action="@{/tutor/courses/{id}/delete(id=${course.id})}" method="post"
+                                          class="d-inline" onsubmit="return confirm('Permanently delete this course? This cannot be undone.');">
+                                        <button type="submit" class="btn btn-outline-danger" title="Delete Course">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${courses == null or courses.isEmpty()}" class="text-center py-5">
+        <div style="background: rgba(99,102,241,0.06); border: 2px dashed rgba(99,102,241,0.25); border-radius: 16px; padding: 4rem 2rem;">
+            <i class="bi bi-journal-x text-muted" style="font-size: 3.5rem;"></i>
+            <h4 class="mt-3 fw-bold">No Courses Yet</h4>
+            <p class="text-muted mb-4">Create your first course and start teaching thousands of students.</p>
+            <a th:href="@{/tutor/courses/create}" class="btn btn-primary px-4">
+                <i class="bi bi-plus-circle me-2"></i>Create Your First Course
+            </a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

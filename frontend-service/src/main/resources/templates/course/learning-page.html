@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title th:text="${course != null ? course.title + ' - Learning' : 'Course Player'}">Course Player</title>
+    <style>
+        body { background-color: #0f1117; }
+        .learning-sidebar { background: #1a1d27; border-right: 1px solid rgba(255,255,255,0.07); min-height: 100vh; }
+        .lesson-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1.25rem; color: rgba(255,255,255,0.7); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease; font-size: 0.875rem; }
+        .lesson-link:hover { background: rgba(99,102,241,0.12); color: #fff; }
+        .lesson-link.active { background: rgba(99,102,241,0.25); color: #a5b4fc; border-left: 3px solid #6366f1; }
+        .section-header { padding: 0.75rem 1.25rem; background: rgba(255,255,255,0.04); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
+        .content-panel { background: #13151f; border-radius: 12px; overflow: hidden; }
+        .content-header { background: #1a1d27; padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        .lesson-type-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+        .resource-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1.1rem 1.4rem; display: flex; align-items: center; gap: 1rem; transition: all 0.2s ease; text-decoration: none; color: inherit; }
+        .resource-card:hover { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.4); color: #a5b4fc; transform: translateX(4px); }
+        .resource-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .res-video { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .res-youtube { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .res-vimeo { background: rgba(26,183,234,0.15); color: #1ab7ea; }
+        .res-pdf { background: rgba(234,88,12,0.15); color: #ea580c; }
+        .res-article { background: rgba(16,185,129,0.15); color: #10b981; }
+        .res-link { background: rgba(99,102,241,0.15); color: #6366f1; }
+        .res-assignment { background: rgba(168,85,247,0.15); color: #a855f7; }
+        .res-download { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .res-source { background: rgba(107,114,128,0.15); color: #9ca3af; }
+        .res-presentation { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .article-content { background: #1a1d27; border-radius: 10px; padding: 2rem; color: rgba(255,255,255,0.85); line-height: 1.8; font-size: 0.975rem; }
+        .assignment-content { background: linear-gradient(135deg, rgba(168,85,247,0.08), rgba(99,102,241,0.08)); border: 1px solid rgba(168,85,247,0.2); border-radius: 12px; padding: 2rem; }
+        .video-player-wrapper { background: #000; border-radius: 8px; overflow: hidden; }
+        .completion-bar { background: rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.07); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+        .nav-btn-secondary { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1); }
+        .nav-btn-secondary:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        .nav-btn-success { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; cursor: pointer; }
+        .nav-btn-success:hover { opacity: 0.9; transform: translateY(-1px); }
+        .preview-banner { background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(234,88,12,0.1)); border: 1px solid rgba(245,158,11,0.25); border-radius: 10px; padding: 0.9rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; color: #f59e0b; font-size: 0.875rem; margin-bottom: 1.5rem; }
+        .resources-section { padding: 2rem; }
+        .resources-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); margin-bottom: 1rem; }
+        .pdf-embed-wrapper { background: #fff; border-radius: 8px; overflow: hidden; }
+        .lesson-icon { font-size: 1rem; }
+    </style>
+</head>
+<body>
+<main layout:fragment="content">
+    <div th:if="${course != null}">
+        <div class="d-flex" style="min-height: 100vh;">
+
+            <!-- ============================
+                 SIDEBAR (Curriculum Tree)
+                 ============================ -->
+            <div class="learning-sidebar d-none d-lg-block" style="width: 340px; overflow-y: auto; max-height: 100vh; position: sticky; top: 0;">
+                <!-- Sidebar header -->
+                <div class="p-3 border-bottom" style="border-color: rgba(255,255,255,0.07) !important; background: #0f1117;">
+                    <a th:href="@{/courses/{id}(id=${course.id})}" class="text-decoration-none d-flex align-items-center gap-2 mb-2" style="color: rgba(255,255,255,0.5); font-size:0.8rem;">
+                        <i class="bi bi-arrow-left"></i> Back to course
+                    </a>
+                    <h6 class="fw-bold mb-0 text-white" th:text="${course.title}">Course Title</h6>
+                </div>
+                <!-- Sections & Lessons -->
+                <div th:each="section, sIdx : ${sections}">
+                    <div class="section-header" th:text="${section.title}">Section</div>
+                    <div th:if="${section.lessons != null}" th:each="lesson : ${section.lessons}">
+                        <a th:href="@{/courses/{id}/learn(id=${course.id}, lessonId=${lesson.id})}"
+                           class="lesson-link"
+                           th:classappend="${currentLesson != null && currentLesson.id == lesson.id} ? 'active' : ''">
+                            <!-- Content-type icon -->
+                            <i class="bi lesson-icon"
+                               th:classappend="${lesson.contentType == 'VIDEO' or lesson.contentType == 'YOUTUBE' or lesson.contentType == 'VIMEO'} ? 'bi-play-circle-fill text-danger' :
+                                              (${lesson.contentType == 'PDF'} ? 'bi-file-earmark-pdf-fill text-warning' :
+                                              (${lesson.contentType == 'ARTICLE'} ? 'bi-file-text-fill text-success' :
+                                              (${lesson.contentType == 'ASSIGNMENT'} ? 'bi-clipboard-check-fill text-purple' :
+                                              (${lesson.contentType == 'SOURCE_CODE'} ? 'bi-code-slash text-secondary' :
+                                              (${lesson.contentType == 'PRESENTATION'} ? 'bi-easel-fill text-warning' : 'bi-link-45deg text-primary')))))"></i>
+                            <div class="flex-grow-1">
+                                <div th:text="${lesson.title}">Lesson</div>
+                                <div th:if="${lesson.durationMinutes != null}" style="font-size:0.7rem; color: rgba(255,255,255,0.35);" th:text="${lesson.durationMinutes + ' min'}"></div>
+                            </div>
+                            <i class="bi bi-check-circle-fill text-success" th:if="${lesson.isPreview}" title="Free Preview" style="font-size:0.75rem; opacity:0.7;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================
+                 MAIN CONTENT AREA
+                 ============================ -->
+            <div class="flex-grow-1 p-3 p-lg-4" style="overflow-y: auto;">
+                <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+                <!-- No lesson selected -->
+                <div th:unless="${currentLesson != null}" class="d-flex align-items-center justify-content-center" style="min-height:60vh;">
+                    <div class="text-center" style="color: rgba(255,255,255,0.4);">
+                        <i class="bi bi-play-circle" style="font-size: 4rem;"></i>
+                        <h5 class="mt-3 fw-bold" style="color: rgba(255,255,255,0.6);">Select a lesson to start learning</h5>
+                    </div>
+                </div>
+
+                <div th:if="${currentLesson != null}" class="content-panel">
+                    <!-- Lesson Header -->
+                    <div class="content-header">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+                            <div>
+                                <h4 class="fw-bold text-white mb-1" th:text="${currentLesson.title}">Lesson Title</h4>
+                                <p class="mb-2" style="color: rgba(255,255,255,0.5); font-size: 0.875rem;" th:if="${currentLesson.description}" th:text="${currentLesson.description}"></p>
+                                <!-- Type badge -->
+                                <span class="lesson-type-badge"
+                                      th:classappend="${currentLesson.contentType == 'VIDEO' or currentLesson.contentType == 'YOUTUBE' or currentLesson.contentType == 'VIMEO'} ? 'bg-danger bg-opacity-10 text-danger' :
+                                                     (${currentLesson.contentType == 'PDF'} ? 'bg-warning bg-opacity-10 text-warning' :
+                                                     (${currentLesson.contentType == 'ARTICLE'} ? 'bg-success bg-opacity-10 text-success' :
+                                                     (${currentLesson.contentType == 'ASSIGNMENT'} ? 'text-purple' :
+                                                     'bg-primary bg-opacity-10 text-primary')))"
+                                      style="background: rgba(255,255,255,0.06);">
+                                    <i class="bi"
+                                       th:classappend="${currentLesson.contentType == 'VIDEO'} ? 'bi-camera-video' :
+                                                      (${currentLesson.contentType == 'YOUTUBE'} ? 'bi-youtube' :
+                                                      (${currentLesson.contentType == 'VIMEO'} ? 'bi-vimeo' :
+                                                      (${currentLesson.contentType == 'PDF'} ? 'bi-file-earmark-pdf' :
+                                                      (${currentLesson.contentType == 'ARTICLE'} ? 'bi-file-text' :
+                                                      (${currentLesson.contentType == 'ASSIGNMENT'} ? 'bi-clipboard-check' :
+                                                      (${currentLesson.contentType == 'SOURCE_CODE'} ? 'bi-code-slash' :
+                                                      (${currentLesson.contentType == 'PRESENTATION'} ? 'bi-easel' : 'bi-link-45deg')))))))"></i>
+                                    <span th:text="${currentLesson.contentType}">TYPE</span>
+                                </span>
+                                <span class="lesson-type-badge ms-2" style="background: rgba(245,158,11,0.1); color: #f59e0b;" th:if="${currentLesson.isPreview}">
+                                    <i class="bi bi-eye"></i> Free Preview
+                                </span>
+                            </div>
+                            <div th:if="${currentLesson.durationMinutes != null}" style="color: rgba(255,255,255,0.4); font-size:0.82rem; white-space:nowrap;">
+                                <i class="bi bi-clock me-1"></i>
+                                <span th:text="${currentLesson.durationMinutes + ' min'}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================
+                         LESSON CONTENT RENDERING
+                         ======================== -->
+                    <div class="p-3 p-lg-4">
+
+                        <!-- 1. VIDEO (MP4 URL) -->
+                        <div th:if="${currentLesson.contentType == 'VIDEO' && currentLesson.videoUrl != null}" class="video-player-wrapper mb-4">
+                            <div class="ratio ratio-16x9">
+                                <video controls class="w-100" th:src="${currentLesson.videoUrl}" controlslist="nodownload">
+                                    Your browser does not support HTML5 video.
+                                </video>
+                            </div>
+                        </div>
+
+                        <!-- 2. YOUTUBE (Embed) -->
+                        <div th:if="${currentLesson.contentType == 'YOUTUBE' && currentLesson.videoUrl != null}" class="video-player-wrapper mb-4">
+                            <div class="ratio ratio-16x9">
+                                <iframe th:src="${currentLesson.videoUrl}" title="YouTube Video" frameborder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen></iframe>
+                            </div>
+                            <div class="p-3 d-flex align-items-center gap-2" style="background: rgba(239,68,68,0.05); border-top: 1px solid rgba(239,68,68,0.1);">
+                                <i class="bi bi-youtube text-danger"></i>
+                                <a th:href="${currentLesson.videoUrl}" target="_blank" rel="noopener" style="color: rgba(255,255,255,0.5); font-size:0.8rem;">Open on YouTube</a>
+                            </div>
+                        </div>
+
+                        <!-- 3. VIMEO (Embed) -->
+                        <div th:if="${currentLesson.contentType == 'VIMEO' && currentLesson.videoUrl != null}" class="video-player-wrapper mb-4">
+                            <div class="ratio ratio-16x9">
+                                <iframe th:src="${currentLesson.videoUrl}" title="Vimeo Video" frameborder="0"
+                                        allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                            <div class="p-3 d-flex align-items-center gap-2" style="background: rgba(26,183,234,0.05); border-top: 1px solid rgba(26,183,234,0.1);">
+                                <i class="bi bi-vimeo text-info"></i>
+                                <a th:href="${currentLesson.videoUrl}" target="_blank" rel="noopener" style="color: rgba(255,255,255,0.5); font-size:0.8rem;">Open on Vimeo</a>
+                            </div>
+                        </div>
+
+                        <!-- 4. PDF (Embedded viewer) -->
+                        <div th:if="${currentLesson.contentType == 'PDF' && currentLesson.pdfUrl != null}" class="mb-4">
+                            <div class="pdf-embed-wrapper" style="min-height: 600px;">
+                                <object th:data="${currentLesson.pdfUrl}" type="application/pdf" width="100%" height="650px">
+                                    <div class="p-4 text-center" style="background:#1a1d27; color: rgba(255,255,255,0.6);">
+                                        <i class="bi bi-file-earmark-pdf-fill text-warning" style="font-size: 2.5rem;"></i>
+                                        <p class="mt-3">Your browser cannot embed PDFs directly.</p>
+                                        <a th:href="${currentLesson.pdfUrl}" target="_blank" rel="noopener" class="btn btn-warning mt-2">
+                                            <i class="bi bi-download me-2"></i>Open / Download PDF
+                                        </a>
+                                    </div>
+                                </object>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end">
+                                <a th:href="${currentLesson.pdfUrl}" target="_blank" rel="noopener"
+                                   class="nav-btn nav-btn-secondary" style="font-size:0.8rem;">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Open in new tab
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 5. ARTICLE (rendered HTML) -->
+                        <div th:if="${currentLesson.contentType == 'ARTICLE'}" class="mb-4">
+                            <div class="article-content" th:utext="${currentLesson.articleContent}">
+                                Article content...
+                            </div>
+                        </div>
+
+                        <!-- 6. ASSIGNMENT -->
+                        <div th:if="${currentLesson.contentType == 'ASSIGNMENT'}" class="mb-4">
+                            <div class="assignment-content">
+                                <div class="d-flex align-items-center gap-3 mb-4">
+                                    <div class="resource-icon" style="width:50px;height:50px;font-size:1.4rem;background:rgba(168,85,247,0.15);color:#a855f7;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="bi bi-clipboard-check-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold text-white mb-0">Assignment</h5>
+                                        <p class="mb-0 small" style="color: rgba(255,255,255,0.4);">Read the instructions carefully before submitting</p>
+                                    </div>
+                                </div>
+                                <div class="article-content" th:utext="${currentLesson.articleContent}">
+                                    Assignment instructions...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7. EXTERNAL_LINK -->
+                        <div th:if="${currentLesson.contentType == 'EXTERNAL_LINK' && currentLesson.videoUrl != null}" class="mb-4">
+                            <div class="d-flex align-items-center gap-4 p-4" style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px;">
+                                <div class="resource-icon res-link" style="width:54px;height:54px;font-size:1.5rem;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-link-45deg"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-1 fw-semibold text-white" th:text="${currentLesson.title}">Resource</p>
+                                    <p class="small mb-3" style="color: rgba(255,255,255,0.4);" th:text="${currentLesson.videoUrl}"></p>
+                                    <a th:href="${currentLesson.videoUrl}" target="_blank" rel="noopener" class="nav-btn" style="background:rgba(99,102,241,0.2);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);">
+                                        <i class="bi bi-box-arrow-up-right me-2"></i>Visit Resource
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8. SOURCE_CODE -->
+                        <div th:if="${currentLesson.contentType == 'SOURCE_CODE' && currentLesson.videoUrl != null}" class="mb-4">
+                            <div class="d-flex align-items-center gap-4 p-4" style="background: rgba(107,114,128,0.06); border: 1px solid rgba(107,114,128,0.2); border-radius: 12px;">
+                                <div class="resource-icon res-source" style="width:54px;height:54px;font-size:1.5rem;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-code-slash"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-1 fw-semibold text-white">Source Code Repository</p>
+                                    <p class="small mb-3" style="color: rgba(255,255,255,0.4);" th:text="${currentLesson.videoUrl}"></p>
+                                    <a th:href="${currentLesson.videoUrl}" target="_blank" rel="noopener" class="nav-btn" style="background:rgba(107,114,128,0.15);color:#d1d5db;border:1px solid rgba(107,114,128,0.3);">
+                                        <i class="bi bi-git me-2"></i>Open Repository
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9. PRESENTATION -->
+                        <div th:if="${currentLesson.contentType == 'PRESENTATION' && currentLesson.pdfUrl != null}" class="mb-4">
+                            <div style="min-height: 520px; background: #fff; border-radius: 10px; overflow: hidden;">
+                                <iframe th:src="${currentLesson.pdfUrl}" width="100%" height="520px" frameborder="0" allowfullscreen title="Presentation"></iframe>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end">
+                                <a th:href="${currentLesson.pdfUrl}" target="_blank" rel="noopener" class="nav-btn nav-btn-secondary" style="font-size:0.8rem;">
+                                    <i class="bi bi-easel me-1"></i> Open Full Screen
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- DOWNLOAD -->
+                        <div th:if="${currentLesson.contentType == 'DOWNLOAD' && currentLesson.pdfUrl != null}" class="mb-4">
+                            <div class="d-flex align-items-center gap-4 p-4" style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-radius: 12px;">
+                                <div class="resource-icon res-download" style="width:54px;height:54px;font-size:1.5rem;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-download"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-1 fw-semibold text-white" th:text="${currentLesson.title}">Downloadable File</p>
+                                    <p class="small mb-3" style="color: rgba(255,255,255,0.4);" th:text="${currentLesson.pdfUrl}"></p>
+                                    <a th:href="${currentLesson.pdfUrl}" target="_blank" rel="noopener" class="nav-btn" style="background:rgba(59,130,246,0.2);color:#93c5fd;border:1px solid rgba(59,130,246,0.3);">
+                                        <i class="bi bi-download me-2"></i>Download File
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ==============================
+                             LESSON RESOURCES SECTION
+                             Rendered from content-service
+                             ============================== -->
+                        <div th:if="${currentLesson.resources != null && !currentLesson.resources.empty}" class="resources-section mt-2 pt-3" style="border-top: 1px solid rgba(255,255,255,0.07);">
+                            <p class="resources-title"><i class="bi bi-paperclip me-2"></i>Lesson Resources</p>
+                            <div class="d-flex flex-column gap-2">
+                                <div th:each="resource : ${currentLesson.resources}">
+
+                                    <!-- VIDEO resource -->
+                                    <a th:if="${resource.resourceType == 'VIDEO'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-video"><i class="bi bi-play-circle-fill"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">Video File</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- YOUTUBE resource -->
+                                    <a th:if="${resource.resourceType == 'YOUTUBE'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-youtube"><i class="bi bi-youtube"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">YouTube Video</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- VIMEO resource -->
+                                    <a th:if="${resource.resourceType == 'VIMEO'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-vimeo"><i class="bi bi-vimeo"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">Vimeo Video</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- PDF resource -->
+                                    <a th:if="${resource.resourceType == 'PDF'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-pdf"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">PDF Document</div>
+                                        </div>
+                                        <i class="bi bi-download" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- ARTICLE resource -->
+                                    <a th:if="${resource.resourceType == 'ARTICLE'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-article"><i class="bi bi-file-richtext-fill"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">Article</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- EXTERNAL_LINK resource -->
+                                    <a th:if="${resource.resourceType == 'EXTERNAL_LINK'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-link"><i class="bi bi-link-45deg"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">External Link</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- ASSIGNMENT resource -->
+                                    <a th:if="${resource.resourceType == 'ASSIGNMENT'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-assignment"><i class="bi bi-clipboard-check-fill"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">Assignment</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- DOWNLOAD resource -->
+                                    <a th:if="${resource.resourceType == 'DOWNLOAD'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-download"><i class="bi bi-file-earmark-arrow-down-fill"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">Downloadable File</div>
+                                        </div>
+                                        <i class="bi bi-download" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- SOURCE_CODE resource -->
+                                    <a th:if="${resource.resourceType == 'SOURCE_CODE'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-source"><i class="bi bi-code-square"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">Source Code Repository</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- PRESENTATION resource -->
+                                    <a th:if="${resource.resourceType == 'PRESENTATION'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-presentation"><i class="bi bi-easel-fill"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);">Presentation</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                    <!-- Fallback for unrecognized types -->
+                                    <a th:if="${resource.resourceType != 'VIDEO' && resource.resourceType != 'YOUTUBE' && resource.resourceType != 'VIMEO' && resource.resourceType != 'PDF' && resource.resourceType != 'ARTICLE' && resource.resourceType != 'EXTERNAL_LINK' && resource.resourceType != 'ASSIGNMENT' && resource.resourceType != 'DOWNLOAD' && resource.resourceType != 'SOURCE_CODE' && resource.resourceType != 'PRESENTATION'}"
+                                       th:href="${resource.fileUrl}" target="_blank" rel="noopener" class="resource-card">
+                                        <div class="resource-icon res-link"><i class="bi bi-file-earmark"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold" style="color: rgba(255,255,255,0.9);" th:text="${resource.title}">Resource</div>
+                                            <div class="small" style="color:rgba(255,255,255,0.4);" th:text="${resource.resourceType}">Type</div>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right" style="color:rgba(255,255,255,0.25);"></i>
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ========================
+                         MARK AS COMPLETE BAR
+                         ======================== -->
+                    <div class="completion-bar">
+                        <!-- Prev lesson (static for now) -->
+                        <a href="#" class="nav-btn nav-btn-secondary">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
+                        <!-- Mark Complete -->
+                        <form th:action="@{/student/enrollments/{courseId}/complete-lesson/{lessonId}(courseId=${course.id},lessonId=${currentLesson.id})}" method="post">
+                            <button type="submit" class="nav-btn nav-btn-success">
+                                <i class="bi bi-check-circle"></i> Mark as Complete
+                            </button>
+                        </form>
+                        <!-- Next lesson (static for now) -->
+                        <a href="#" class="nav-btn nav-btn-secondary">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course not found -->
+    <div class="container py-5 text-center" th:if="${course == null}">
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        <a href="/courses" class="btn btn-primary mt-3">Browse Courses</a>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>Publish Course | Tutor Dashboard</title>
+</head>
+<body>
+
+<div layout:fragment="content" class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a th:href="@{/tutor/courses}" class="text-decoration-none">My Courses</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Publish</li>
+                </ol>
+            </nav>
+            <h2 class="h3 fw-bold mb-0 text-gray-800">Publish Readiness</h2>
+            <p class="text-muted mt-1" th:text="${course.title}">Course Title</p>
+        </div>
+        <div>
+            <a th:href="@{/tutor/courses}" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-arrow-left me-2"></i>Back to Courses
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+    
+    <div th:if="${validationErrors != null and !validationErrors.isEmpty()}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Publishing blocked due to validation errors:</h6>
+        <ul class="mb-0">
+            <li th:each="error : ${validationErrors}" th:text="${error}"></li>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Content -->
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold"><i class="bi bi-list-check me-2 text-primary"></i> Readiness Checklist</h5>
+                    <p class="text-muted small">All items must be marked as complete before publishing.</p>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-group list-group-flush">
+                        
+                        <!-- Profile -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" th:classappend="${report.profileComplete} ? 'text-success' : 'text-danger'">
+                                    <i class="bi fs-5" th:classappend="${report.profileComplete} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Tutor Profile Complete</h6>
+                                    <small class="text-muted" th:if="${!report.profileComplete}">Your tutor profile is incomplete.</small>
+                                </div>
+                            </div>
+                            <a th:if="${!report.profileComplete}" href="/profile" class="btn btn-sm btn-outline-primary">Complete Profile</a>
+                        </li>
+                        
+                        <!-- Course Info -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" th:classappend="${report.courseInfoComplete} ? 'text-success' : 'text-danger'">
+                                    <i class="bi fs-5" th:classappend="${report.courseInfoComplete} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Course Information</h6>
+                                    <small class="text-muted">Title, Description, Category, Course Level</small>
+                                </div>
+                            </div>
+                            <a th:if="${!report.courseInfoComplete}" th:href="@{/tutor/courses/{id}/edit(id=${course.id})}" class="btn btn-sm btn-outline-primary">Edit Info</a>
+                        </li>
+
+                        <!-- Thumbnail -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" th:classappend="${report.thumbnailSet} ? 'text-success' : 'text-danger'">
+                                    <i class="bi fs-5" th:classappend="${report.thumbnailSet} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Course Thumbnail</h6>
+                                    <small class="text-muted" th:if="${!report.thumbnailSet}">Course thumbnail is missing.</small>
+                                </div>
+                            </div>
+                            <a th:if="${!report.thumbnailSet}" th:href="@{/tutor/courses/{id}/edit(id=${course.id})}" class="btn btn-sm btn-outline-primary">Upload Thumbnail</a>
+                        </li>
+
+                        <!-- Banner -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" th:classappend="${report.bannerSet} ? 'text-success' : 'text-danger'">
+                                    <i class="bi fs-5" th:classappend="${report.bannerSet} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Course Banner</h6>
+                                    <small class="text-muted" th:if="${!report.bannerSet}">Course banner is missing.</small>
+                                </div>
+                            </div>
+                            <a th:if="${!report.bannerSet}" th:href="@{/tutor/courses/{id}/edit(id=${course.id})}" class="btn btn-sm btn-outline-primary">Upload Banner</a>
+                        </li>
+                        
+                        <!-- Sections -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" th:classappend="${report.hasSections} ? 'text-success' : 'text-danger'">
+                                    <i class="bi fs-5" th:classappend="${report.hasSections} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">At least one Section</h6>
+                                    <small class="text-muted" th:if="${!report.hasSections}">No sections created.</small>
+                                </div>
+                            </div>
+                            <a th:if="${!report.hasSections}" th:href="@{/tutor/courses/{id}/curriculum(id=${course.id})}" class="btn btn-sm btn-outline-primary">Manage Curriculum</a>
+                        </li>
+                        
+                        <!-- Lessons -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" th:classappend="${report.allSectionsHaveLessons} ? 'text-success' : 'text-danger'">
+                                    <i class="bi fs-5" th:classappend="${report.allSectionsHaveLessons} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Every Section has at least one Lesson</h6>
+                                    <small class="text-muted" th:if="${!report.allSectionsHaveLessons}">One or more sections are empty.</small>
+                                </div>
+                            </div>
+                            <a th:if="${!report.allSectionsHaveLessons}" th:href="@{/tutor/courses/{id}/curriculum(id=${course.id})}" class="btn btn-sm btn-outline-primary">Manage Curriculum</a>
+                        </li>
+                        
+                        <!-- Resources -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" th:classappend="${report.allLessonsHaveResources} ? 'text-success' : 'text-danger'">
+                                    <i class="bi fs-5" th:classappend="${report.allLessonsHaveResources} ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                                </span>
+                                <div>
+                                    <h6 class="mb-0 fw-semibold">Every Lesson has at least one Resource</h6>
+                                    <small class="text-muted" th:if="${!report.allLessonsHaveResources}">One or more lessons lack resources.</small>
+                                </div>
+                            </div>
+                            <a th:if="${!report.allLessonsHaveResources}" th:href="@{/tutor/courses/{id}/curriculum(id=${course.id})}" class="btn btn-sm btn-outline-primary">Manage Curriculum</a>
+                        </li>
+
+                    </ul>
+
+                    <!-- Full Errors List from Backend (if any are not directly mapped) -->
+                    <div th:if="${report.errors != null and !report.errors.isEmpty()}" class="mt-4 alert alert-warning p-3">
+                        <h6 class="fw-bold mb-2">Detailed Backend Validation Errors:</h6>
+                        <ul class="mb-0">
+                            <li th:each="err : ${report.errors}" th:text="${err}"></li>
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="card-footer bg-light p-4 text-end">
+                    <form th:action="@{/tutor/courses/{id}/publish(id=${course.id})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-success px-4 py-2" th:disabled="${!report.readyToPublish}">
+                            <i class="bi bi-cloud-upload me-2"></i>Confirm &amp; Publish
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

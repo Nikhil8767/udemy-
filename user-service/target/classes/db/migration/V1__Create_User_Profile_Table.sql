@@ -1,0 +1,21 @@
+CREATE TABLE user_profiles (
+    id UUID PRIMARY KEY,
+    auth_user_id UUID NOT NULL UNIQUE,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    phone_number VARCHAR(255) UNIQUE,
+    date_of_birth VARCHAR(50),
+    gender VARCHAR(50),
+    bio VARCHAR(1000),
+    profile_image_url VARCHAR(500),
+    country VARCHAR(100),
+    state VARCHAR(100),
+    city VARCHAR(100),
+    zip_code VARCHAR(50),
+    address VARCHAR(500),
+    linkedin_url VARCHAR(500),
+    github_url VARCHAR(500),
+    website_url VARCHAR(500),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);

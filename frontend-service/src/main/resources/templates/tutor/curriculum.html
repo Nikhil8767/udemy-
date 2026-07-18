@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>Manage Curriculum - LMS Tutor</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            Manage Curriculum <br>
+            <small class="text-muted fs-6" th:text="${course.title}">Course Title</small>
+        </h2>
+        <a th:href="@{/tutor/courses}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+    <div class="row">
+        <!-- Main Curriculum Area -->
+        <div class="col-lg-8">
+            <div th:if="${sections != null and !sections.isEmpty()}" class="accordion mb-4" id="curriculumAccordion">
+                
+                <div th:each="section, iterStat : ${sections}" class="accordion-item shadow-sm mb-3 border-0 rounded">
+                    <div class="accordion-header d-flex align-items-center bg-light rounded" th:id="'heading' + ${iterStat.index}">
+                        <button class="accordion-button flex-grow-1 bg-transparent shadow-none" type="button" data-bs-toggle="collapse" 
+                                th:data-bs-target="'#collapse' + ${iterStat.index}" 
+                                aria-expanded="true" th:aria-controls="'collapse' + ${iterStat.index}">
+                            <strong th:text="'Section ' + ${section.displayOrder} + ': ' + ${section.title}">Section Title</strong>
+                        </button>
+                        <div class="btn-group me-3">
+                            <button class="btn btn-sm btn-outline-secondary" title="Edit Section" data-bs-toggle="modal" data-bs-target="#editSectionModal"
+                                    th:attr="data-id=${section.id}, data-course-id=${course.id}, data-title=${section.title}, data-description=${section.description}, data-order=${section.displayOrder}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" title="Delete Section" data-bs-toggle="modal" data-bs-target="#deleteSectionModal"
+                                    th:attr="data-id=${section.id}, data-course-id=${course.id}, data-title=${section.title}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div th:id="'collapse' + ${iterStat.index}" class="accordion-collapse collapse show" 
+                         th:aria-labelledby="'heading' + ${iterStat.index}">
+                        <div class="accordion-body p-0">
+                            <!-- Section Description (optional) -->
+                            <div class="px-4 py-3 bg-white border-bottom text-muted small" th:if="${section.description}" th:text="${section.description}">
+                            </div>
+
+                            <ul class="list-group list-group-flush">
+                                <th:block th:each="lesson : ${section.lessons}">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3 text-secondary">
+                                                <i th:if="${lesson.contentType == 'VIDEO' or lesson.contentType == 'YOUTUBE' or lesson.contentType == 'VIMEO'}" class="bi bi-play-circle-fill fs-5"></i>
+                                                <i th:if="${lesson.contentType == 'ARTICLE' or lesson.contentType == 'ASSIGNMENT'}" class="bi bi-file-text-fill fs-5"></i>
+                                                <i th:if="${lesson.contentType == 'PDF' or lesson.contentType == 'DOWNLOAD'}" class="bi bi-file-earmark-pdf-fill fs-5"></i>
+                                                <i th:if="${lesson.contentType == 'EXTERNAL_LINK'}" class="bi bi-link-45deg fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <span class="mb-0 fw-semibold d-block">
+                                                    <span th:text="${lesson.displayOrder} + '. ' + ${lesson.title}">Lesson Title</span>
+                                                    <span th:if="${lesson.isPreview}" class="badge bg-success ms-2" style="font-size: 0.6rem;">Free Preview</span>
+                                                </span>
+                                                <span class="text-muted small" th:text="${lesson.durationMinutes + ' min'}">10 min</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <button class="btn btn-sm btn-outline-primary me-2" title="Add Resource" data-bs-toggle="modal" data-bs-target="#addResourceModal"
+                                                    th:attr="data-lesson-id=${lesson.id}">
+                                                <i class="bi bi-paperclip"></i> Add Resource
+                                            </button>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-secondary" title="Edit Lesson" data-bs-toggle="modal" data-bs-target="#editLessonModal"
+                                                        th:attr="data-id=${lesson.id}, data-course-id=${course.id}, data-section-id=${section.id}, data-title=${lesson.title}, data-description=${lesson.description}, data-type=${lesson.contentType}, data-video=${lesson.videoUrl}, data-pdf=${lesson.pdfUrl}, data-article=${lesson.articleContent}, data-duration=${lesson.durationMinutes}, data-order=${lesson.displayOrder}, data-preview=${lesson.isPreview}">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger" title="Delete Lesson" data-bs-toggle="modal" data-bs-target="#deleteLessonModal"
+                                                        th:attr="data-id=${lesson.id}, data-course-id=${course.id}, data-title=${lesson.title}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <!-- Resources List for Lesson -->
+                                    <li th:if="${lesson.resources != null and !lesson.resources.isEmpty()}" class="list-group-item bg-light border-0 py-2 ps-5">
+                                        <div class="small fw-bold text-muted mb-1">Resources:</div>
+                                        <ul class="list-unstyled mb-0 ms-2">
+                                            <li th:each="resource : ${lesson.resources}" class="d-flex justify-content-between align-items-center mb-1">
+                                                <a th:href="${resource.fileUrl}" target="_blank" class="text-decoration-none small">
+                                                    <i th:if="${resource.resourceType == 'PDF'}" class="bi bi-file-pdf text-danger"></i>
+                                                    <i th:if="${resource.resourceType == 'DOWNLOAD'}" class="bi bi-download text-primary"></i>
+                                                    <i th:if="${resource.resourceType == 'EXTERNAL_LINK'}" class="bi bi-link text-info"></i>
+                                                    <span th:text="${resource.title}">Resource Title</span>
+                                                </a>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-link text-secondary p-0 px-1" title="Edit Resource" data-bs-toggle="modal" data-bs-target="#editResourceModal"
+                                                            th:attr="data-id=${resource.id}, data-course-id=${course.id}, data-lesson-id=${lesson.id}, data-title=${resource.title}, data-type=${resource.resourceType}, data-url=${resource.fileUrl}">
+                                                        <i class="bi bi-pencil" style="font-size: 0.8rem;"></i>
+                                                    </button>
+                                                    <button class="btn btn-link text-danger p-0 px-1" title="Delete Resource" data-bs-toggle="modal" data-bs-target="#deleteResourceModal"
+                                                            th:attr="data-id=${resource.id}, data-course-id=${course.id}">
+                                                        <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                                                    </button>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </th:block>
+                                <li th:if="${section.lessons == null or section.lessons.isEmpty()}" class="list-group-item text-center text-muted py-4">
+                                    No lessons in this section.
+                                </li>
+                            </ul>
+                            
+                            <!-- Add Lesson Button -->
+                            <div class="p-3 bg-light text-center border-top">
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addLessonModal" th:attr="data-section-id=${section.id}">
+                                    <i class="bi bi-plus"></i> Add Lesson
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${sections == null or sections.isEmpty()}" class="card shadow-sm border-0 py-5 text-center">
+                <div class="card-body">
+                    <i class="bi bi-folder-x text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+                    <h4>Curriculum is Empty</h4>
+                    <p class="text-muted">Start building your course by adding your first section.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Curriculum Tools</h5>
+                    <button class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#addSectionModal">
+                        <i class="bi bi-plus-circle"></i> Add New Section
+                    </button>
+                    <a th:href="@{/tutor/courses/{id}/edit(id=${course.id})}" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-pencil"></i> Edit Course Details
+                    </a>
+                    
+                    <hr>
+                    <p class="small text-muted mb-2">
+                        <strong>Course Status:</strong> 
+                        <span class="badge" th:classappend="${course.courseStatus == 'PUBLISHED' ? 'bg-success' : 'bg-secondary'}" th:text="${course.courseStatus}">DRAFT</span>
+                    </p>
+                    
+                    <button th:if="${course.courseStatus == 'DRAFT'}" type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#publishModal">
+                        <i class="bi bi-cloud-upload"></i> Publish Course
+                    </button>
+                    
+                    <!-- Publish modal moved to the bottom of the page -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Modals -->
+<!-- Publish Modal -->
+<div th:if="${course.courseStatus == 'DRAFT'}" class="modal fade" id="publishModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-primary">Course Readiness Checklist</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Before you publish <strong>[[${course.title}]]</strong>, ensure your course meets our quality standards:</p>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-secondary"><i class="bi bi-person-badge me-2 text-primary"></i>Tutor Profile 100% Complete</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-secondary"><i class="bi bi-card-image me-2 text-primary"></i>Course Information (Thumbnail, Level, etc.)</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-secondary"><i class="bi bi-folder-check me-2 text-primary"></i>At least 1 Section exists</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-secondary"><i class="bi bi-play-btn me-2 text-primary"></i>Every Section has at least 1 Lesson</span>
+                    </li>
+                </ul>
+                <div class="alert alert-info py-2 small mb-0">
+                    <i class="bi bi-info-circle me-1"></i> These requirements will be validated when you click Publish.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form th:action="@{/tutor/courses/{id}/publish(id=${course.id})}" method="post">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-cloud-upload me-1"></i> Verify & Publish</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Section Modal -->
+<div class="modal fade" id="addSectionModal" tabindex="-1" aria-labelledby="addSectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/tutor/courses/{id}/sections(id=${course.id})}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSectionModalLabel">Add New Section</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Section Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Display Order</label>
+                        <input type="number" name="displayOrder" class="form-control" value="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Section</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Section Modal -->
+<div class="modal fade" id="editSectionModal" tabindex="-1" aria-labelledby="editSectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editSectionForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSectionModalLabel">Edit Section</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Section Title</label>
+                        <input type="text" name="title" id="editSectionTitle" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <textarea name="description" id="editSectionDescription" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Display Order</label>
+                        <input type="number" name="displayOrder" id="editSectionDisplayOrder" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Section</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Section Modal -->
+<div class="modal fade" id="deleteSectionModal" tabindex="-1" aria-labelledby="deleteSectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="deleteSectionForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="deleteSectionModalLabel">Delete Section</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong id="deleteSectionTitleDisplay"></strong>?</p>
+                    <p class="text-danger small"><i class="bi bi-exclamation-triangle"></i> This will also permanently delete all lessons and resources within this section!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Section</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Lesson Modal -->
+<div class="modal fade" id="addLessonModal" tabindex="-1" aria-labelledby="addLessonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/tutor/courses/{id}/lessons(id=${course.id})}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addLessonModalLabel">Add New Lesson</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="sectionId" id="lessonSectionId">
+                    <div class="mb-3">
+                        <label class="form-label">Lesson Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lesson Description</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content Type</label>
+                        <select name="contentType" class="form-select" required onchange="toggleContentFields(this.value, '')">
+                            <option value="VIDEO">Video URL</option>
+                            <option value="YOUTUBE">YouTube</option>
+                            <option value="VIMEO">Vimeo</option>
+                            <option value="PDF">PDF</option>
+                            <option value="ARTICLE">Article</option>
+                            <option value="EXTERNAL_LINK">External Link</option>
+                            <option value="DOWNLOAD">Download</option>
+                            <option value="ASSIGNMENT">Assignment</option>
+                            <option value="SOURCE_CODE">Source Code</option>
+                            <option value="PRESENTATION">Presentation</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="videoUrlField">
+                        <label class="form-label" id="videoUrlLabel">Video/Link URL</label>
+                        <input type="url" name="videoUrl" class="form-control">
+                    </div>
+                    <div class="mb-3 d-none" id="pdfUrlField">
+                        <label class="form-label" id="pdfUrlLabel">File/Document URL</label>
+                        <input type="url" name="pdfUrl" class="form-control">
+                    </div>
+                    <div class="mb-3 d-none" id="articleContentField">
+                        <label class="form-label">Article/Assignment Content</label>
+                        <textarea name="articleContent" class="form-control" rows="4"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Duration (Minutes)</label>
+                            <input type="number" name="durationMinutes" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Display Order</label>
+                            <input type="number" name="displayOrder" class="form-control" value="1" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="isPreview" class="form-check-input" id="freePreviewCheck" value="true">
+                        <label class="form-check-label fw-bold text-success" for="freePreviewCheck">Enable Free Preview (Visible without purchase)</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Lesson</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Lesson Modal -->
+<div class="modal fade" id="editLessonModal" tabindex="-1" aria-labelledby="editLessonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editLessonForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editLessonModalLabel">Edit Lesson</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="sectionId" id="editLessonSectionId">
+                    <div class="mb-3">
+                        <label class="form-label">Lesson Title</label>
+                        <input type="text" name="title" id="editLessonTitle" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lesson Description</label>
+                        <textarea name="description" id="editLessonDescription" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content Type</label>
+                        <select name="contentType" id="editLessonContentType" class="form-select" required onchange="toggleContentFields(this.value, 'Edit')">
+                            <option value="VIDEO">Video URL</option>
+                            <option value="YOUTUBE">YouTube</option>
+                            <option value="VIMEO">Vimeo</option>
+                            <option value="PDF">PDF</option>
+                            <option value="ARTICLE">Article</option>
+                            <option value="EXTERNAL_LINK">External Link</option>
+                            <option value="DOWNLOAD">Download</option>
+                            <option value="ASSIGNMENT">Assignment</option>
+                            <option value="SOURCE_CODE">Source Code</option>
+                            <option value="PRESENTATION">Presentation</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="editVideoUrlField">
+                        <label class="form-label" id="editvideoUrlLabel">Video/Link URL</label>
+                        <input type="url" name="videoUrl" id="editLessonVideoUrl" class="form-control">
+                    </div>
+                    <div class="mb-3 d-none" id="editPdfUrlField">
+                        <label class="form-label" id="editpdfUrlLabel">File/Document URL</label>
+                        <input type="url" name="pdfUrl" id="editLessonPdfUrl" class="form-control">
+                    </div>
+                    <div class="mb-3 d-none" id="editArticleContentField">
+                        <label class="form-label">Article/Assignment Content</label>
+                        <textarea name="articleContent" id="editLessonArticleContent" class="form-control" rows="4"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Duration (Minutes)</label>
+                            <input type="number" name="durationMinutes" id="editLessonDuration" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Display Order</label>
+                            <input type="number" name="displayOrder" id="editLessonDisplayOrder" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="isPreview" id="editLessonPreview" class="form-check-input" value="true">
+                        <label class="form-check-label fw-bold text-success" for="editLessonPreview">Enable Free Preview (Visible without purchase)</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Lesson</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Lesson Modal -->
+<div class="modal fade" id="deleteLessonModal" tabindex="-1" aria-labelledby="deleteLessonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="deleteLessonForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="deleteLessonModalLabel">Delete Lesson</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong id="deleteLessonTitleDisplay"></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Lesson</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Add Resource Modal -->
+<div class="modal fade" id="addResourceModal" tabindex="-1" aria-labelledby="addResourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/tutor/courses/{id}/resources(id=${course.id})}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addResourceModalLabel">Add Resource</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="lessonId" id="resourceLessonId">
+                    <div class="mb-3">
+                        <label class="form-label">Resource Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Resource Type</label>
+                        <select name="resourceType" class="form-select" required>
+                            <option value="VIDEO">Video</option>
+                            <option value="YOUTUBE">YouTube Video</option>
+                            <option value="VIMEO">Vimeo Video</option>
+                            <option value="PDF">PDF</option>
+                            <option value="ARTICLE">Article</option>
+                            <option value="EXTERNAL_LINK">External Link</option>
+                            <option value="ASSIGNMENT">Assignment</option>
+                            <option value="DOWNLOAD">Downloadable File</option>
+                            <option value="SOURCE_CODE">Source Code</option>
+                            <option value="PRESENTATION">Presentation</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File URL / Link</label>
+                        <input type="url" name="fileUrl" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Resource Modal -->
+<div class="modal fade" id="editResourceModal" tabindex="-1" aria-labelledby="editResourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editResourceForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editResourceModalLabel">Edit Resource</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="lessonId" id="editResourceLessonId">
+                    <div class="mb-3">
+                        <label class="form-label">Resource Title</label>
+                        <input type="text" name="title" id="editResourceTitle" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Resource Type</label>
+                        <select name="resourceType" id="editResourceType" class="form-select" required>
+                            <option value="VIDEO">Video</option>
+                            <option value="YOUTUBE">YouTube Video</option>
+                            <option value="VIMEO">Vimeo Video</option>
+                            <option value="PDF">PDF</option>
+                            <option value="ARTICLE">Article</option>
+                            <option value="EXTERNAL_LINK">External Link</option>
+                            <option value="ASSIGNMENT">Assignment</option>
+                            <option value="DOWNLOAD">Downloadable File</option>
+                            <option value="SOURCE_CODE">Source Code</option>
+                            <option value="PRESENTATION">Presentation</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File URL / Link</label>
+                        <input type="url" name="fileUrl" id="editResourceFileUrl" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Resource Modal -->
+<div class="modal fade" id="deleteResourceModal" tabindex="-1" aria-labelledby="deleteResourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="deleteResourceForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="deleteResourceModalLabel">Delete Resource</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this resource?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add Lesson Modal
+        var addLessonModal = document.getElementById('addLessonModal');
+        if (addLessonModal) {
+            addLessonModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var sectionId = button.getAttribute('data-section-id');
+                document.getElementById('lessonSectionId').value = sectionId;
+            });
+        }
+
+        // Edit Section Modal
+        var editSectionModal = document.getElementById('editSectionModal');
+        if (editSectionModal) {
+            editSectionModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var courseId = button.getAttribute('data-course-id');
+                var title = button.getAttribute('data-title');
+                var description = button.getAttribute('data-description');
+                var order = button.getAttribute('data-order');
+                
+                document.getElementById('editSectionForm').action = '/tutor/courses/' + courseId + '/sections/' + id + '/edit';
+                document.getElementById('editSectionTitle').value = title;
+                document.getElementById('editSectionDescription').value = description;
+                document.getElementById('editSectionDisplayOrder').value = order;
+            });
+        }
+
+        // Delete Section Modal
+        var deleteSectionModal = document.getElementById('deleteSectionModal');
+        if (deleteSectionModal) {
+            deleteSectionModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var courseId = button.getAttribute('data-course-id');
+                var title = button.getAttribute('data-title');
+                
+                document.getElementById('deleteSectionForm').action = '/tutor/courses/' + courseId + '/sections/' + id + '/delete';
+                document.getElementById('deleteSectionTitleDisplay').textContent = title;
+            });
+        }
+
+        // Edit Lesson Modal
+        var editLessonModal = document.getElementById('editLessonModal');
+        if (editLessonModal) {
+            editLessonModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var courseId = button.getAttribute('data-course-id');
+                var sectionId = button.getAttribute('data-section-id');
+                
+                document.getElementById('editLessonForm').action = '/tutor/courses/' + courseId + '/lessons/' + id + '/edit';
+                document.getElementById('editLessonSectionId').value = sectionId;
+                document.getElementById('editLessonTitle').value = button.getAttribute('data-title');
+                document.getElementById('editLessonDescription').value = button.getAttribute('data-description');
+                document.getElementById('editLessonContentType').value = button.getAttribute('data-type');
+                document.getElementById('editLessonVideoUrl').value = button.getAttribute('data-video');
+                document.getElementById('editLessonPdfUrl').value = button.getAttribute('data-pdf');
+                document.getElementById('editLessonArticleContent').value = button.getAttribute('data-article');
+                document.getElementById('editLessonDuration').value = button.getAttribute('data-duration');
+                document.getElementById('editLessonDisplayOrder').value = button.getAttribute('data-order');
+                document.getElementById('editLessonPreview').checked = button.getAttribute('data-preview') === 'true';
+                
+                toggleContentFields(button.getAttribute('data-type'), 'edit');
+            });
+        }
+
+        // Delete Lesson Modal
+        var deleteLessonModal = document.getElementById('deleteLessonModal');
+        if (deleteLessonModal) {
+            deleteLessonModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var courseId = button.getAttribute('data-course-id');
+                var title = button.getAttribute('data-title');
+                
+                document.getElementById('deleteLessonForm').action = '/tutor/courses/' + courseId + '/lessons/' + id + '/delete';
+                document.getElementById('deleteLessonTitleDisplay').textContent = title;
+            });
+        }
+
+        // Add Resource Modal
+        var addResourceModal = document.getElementById('addResourceModal');
+        if (addResourceModal) {
+            addResourceModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                document.getElementById('resourceLessonId').value = button.getAttribute('data-lesson-id');
+            });
+        }
+
+        // Edit Resource Modal
+        var editResourceModal = document.getElementById('editResourceModal');
+        if (editResourceModal) {
+            editResourceModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var courseId = button.getAttribute('data-course-id');
+                
+                document.getElementById('editResourceForm').action = '/tutor/courses/' + courseId + '/resources/' + id + '/edit';
+                document.getElementById('editResourceLessonId').value = button.getAttribute('data-lesson-id');
+                document.getElementById('editResourceTitle').value = button.getAttribute('data-title');
+                document.getElementById('editResourceType').value = button.getAttribute('data-type');
+                document.getElementById('editResourceFileUrl').value = button.getAttribute('data-url');
+            });
+        }
+
+        // Delete Resource Modal
+        var deleteResourceModal = document.getElementById('deleteResourceModal');
+        if (deleteResourceModal) {
+            deleteResourceModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var courseId = button.getAttribute('data-course-id');
+                
+                document.getElementById('deleteResourceForm').action = '/tutor/courses/' + courseId + '/resources/' + id + '/delete';
+            });
+        }
+    });
+
+    function toggleContentFields(type, prefix) {
+        var pre = prefix ? prefix.toLowerCase() : '';
+        var videoField = document.getElementById(pre + 'VideoUrlField') || document.getElementById('editVideoUrlField') || document.getElementById('videoUrlField');
+        var pdfField = document.getElementById(pre + 'PdfUrlField') || document.getElementById('editPdfUrlField') || document.getElementById('pdfUrlField');
+        var articleField = document.getElementById(pre + 'ArticleContentField') || document.getElementById('editArticleContentField') || document.getElementById('articleContentField');
+        
+        if (prefix === '') {
+            videoField = document.getElementById('videoUrlField');
+            pdfField = document.getElementById('pdfUrlField');
+            articleField = document.getElementById('articleContentField');
+        } else if (prefix && prefix.toLowerCase() === 'edit') {
+            videoField = document.getElementById('editVideoUrlField');
+            pdfField = document.getElementById('editPdfUrlField');
+            articleField = document.getElementById('editArticleContentField');
+        }
+
+        if (videoField) videoField.classList.add('d-none');
+        if (pdfField) pdfField.classList.add('d-none');
+        if (articleField) articleField.classList.add('d-none');
+        
+        if (type === 'VIDEO' || type === 'YOUTUBE' || type === 'VIMEO' || type === 'EXTERNAL_LINK' || type === 'SOURCE_CODE') {
+            if (videoField) videoField.classList.remove('d-none');
+            var lbl = document.getElementById(pre + 'videoUrlLabel');
+            if (lbl) lbl.innerText = (type === 'SOURCE_CODE') ? 'Repository URL' : 'Video/Link URL';
+        }
+        if (type === 'PDF' || type === 'DOWNLOAD' || type === 'PRESENTATION') {
+            if (pdfField) pdfField.classList.remove('d-none');
+            var plbl = document.getElementById(pre + 'pdfUrlLabel');
+            if (plbl) plbl.innerText = (type === 'PRESENTATION') ? 'Presentation URL' : 'File/Document URL';
+        }
+        if (type === 'ARTICLE' || type === 'ASSIGNMENT') {
+            if (articleField) articleField.classList.remove('d-none');
+        }
+    }
+</script>
+</div>
+</body>
+</html>

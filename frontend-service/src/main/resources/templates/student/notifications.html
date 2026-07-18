@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/dashboard-layout}">
+<head>
+    <title>Notifications</title>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Notifications</h1>
+        </div>
+        
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        
+        <div class="alert alert-light border text-center" role="alert">
+            <i class="bi bi-bell me-2 text-muted"></i> You're all caught up!
+        </div>
+    </main>
+</body>
+</html>
