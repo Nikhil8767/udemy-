@@ -5,41 +5,59 @@
 </head>
 <body>
     <main layout:fragment="content">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">My Learning</h1>
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+            <h1 class="h2 fw-bold text-primary">My Learning</h1>
+            <a th:href="@{/student/courses}" class="btn btn-outline-primary rounded-pill px-4">
+                <i class="bi bi-search me-1"></i> Browse More
+            </a>
         </div>
         
         <!-- Alerts -->
         <div th:replace="~{fragments/alerts :: alerts}"></div>
         
-        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" th:if="${not #lists.isEmpty(myCourses)}">
             <div th:each="myCourse : ${myCourses}" class="col">
-                <div class="card h-100 shadow-sm border-0">
-                    <img th:if="${myCourse.course.thumbnailUrl != null}" th:src="${myCourse.course.thumbnailUrl}" class="card-img-top" alt="Course Thumbnail" style="height: 180px; object-fit: cover;">
-                    <img th:unless="${myCourse.course.thumbnailUrl != null}" src="https://via.placeholder.com/300x180?text=No+Thumbnail" class="card-img-top" alt="Course Thumbnail">
+                <div class="card h-100 shadow-sm border-0 hover-shadow transition-all">
+                    <div class="position-relative">
+                        <img th:if="${myCourse.course.thumbnailUrl != null}" th:src="${myCourse.course.thumbnailUrl}" class="card-img-top" alt="Course Thumbnail" style="height: 180px; object-fit: cover;">
+                        <img th:unless="${myCourse.course.thumbnailUrl != null}" src="https://via.placeholder.com/300x180?text=No+Thumbnail" class="card-img-top" alt="Course Thumbnail">
+                        <span th:if="${myCourse.enrollment.progressPercentage == 100}" class="position-absolute top-0 end-0 m-2 badge bg-success shadow-sm rounded-pill px-3 py-2">
+                            <i class="bi bi-trophy-fill me-1"></i> Completed
+                        </span>
+                    </div>
                     
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold" th:text="${myCourse.course.title}">Course Title</h5>
+                    <div class="card-body d-flex flex-column p-4">
+                        <h5 class="card-title fw-bold text-dark text-truncate-2 mb-3" th:text="${myCourse.course.title}" style="min-height: 48px;">Course Title</h5>
                         
-                        <div class="mt-auto pt-3">
-                            <div class="d-flex justify-content-between text-muted small mb-1">
-                                <span><span th:text="${myCourse.enrollment.progressPercentage}">0</span>% Complete</span>
-                                <span th:text="${myCourse.enrollment.completedLessons + '/' + myCourse.enrollment.totalLessons + ' Lessons'}">0/10 Lessons</span>
+                        <div class="mt-auto pt-3 border-top border-light">
+                            <div class="d-flex justify-content-between text-muted small fw-bold mb-2">
+                                <span class="text-primary"><span th:text="${myCourse.enrollment.progressPercentage}">0</span>% Complete</span>
+                                <span><span th:text="${myCourse.enrollment.completedLessons}">0</span>/<span th:text="${myCourse.enrollment.totalLessons}">10</span> Lessons</span>
                             </div>
-                            <div class="progress mb-3" style="height: 6px;">
-                                <div class="progress-bar bg-success" role="progressbar" th:style="'width: ' + ${myCourse.enrollment.progressPercentage} + '%'" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress mb-4" style="height: 8px;">
+                                <div class="progress-bar bg-primary rounded-pill" role="progressbar" th:style="'width: ' + ${myCourse.enrollment.progressPercentage} + '%'" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
-                            <a th:href="@{/courses/{id}/learn(id=${myCourse.course.id})}" class="btn btn-primary w-100">Continue Learning</a>
+                            
+                            <a th:href="@{/courses/{id}/learn(id=${myCourse.course.id})}" class="btn w-100 fw-bold" 
+                               th:classappend="${myCourse.enrollment.progressPercentage == 100 ? 'btn-outline-success' : 'btn-primary'}">
+                                <i class="bi" th:classappend="${myCourse.enrollment.progressPercentage == 100 ? 'bi-arrow-repeat' : 'bi-play-fill'}"></i>
+                                <span th:text="${myCourse.enrollment.progressPercentage == 100 ? 'Review Course' : 'Continue Learning'}">Continue Learning</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div th:if="${myCourses == null || myCourses.empty}" class="col-12">
-                <div class="alert alert-info text-center" role="alert">
-                    <i class="bi bi-info-circle me-2"></i> You are not enrolled in any courses yet. 
-                    <a th:href="@{/student/courses}" class="alert-link">Browse courses</a> to start learning!
-                </div>
+        </div>
+        
+        <!-- Empty State -->
+        <div class="card shadow-sm border-0 py-5 text-center" th:if="${#lists.isEmpty(myCourses)}">
+            <div class="card-body py-5">
+                <i class="bi bi-journal-x text-muted mb-4 d-block" style="font-size: 5rem;"></i>
+                <h3 class="fw-bold text-dark">You aren't enrolled in any courses</h3>
+                <p class="text-muted mb-4 lead">Start your learning journey today by exploring our catalog of premium courses.</p>
+                <a th:href="@{/student/courses}" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">
+                    <i class="bi bi-search me-2"></i> Browse Courses
+                </a>
             </div>
         </div>
     </main>

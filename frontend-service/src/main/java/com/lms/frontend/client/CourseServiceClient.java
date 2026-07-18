@@ -44,4 +44,6 @@ public interface CourseServiceClient {
     @GetMapping("/{id}/validate")
     ApiResponse<com.lms.frontend.dto.ValidationReportResponse> validateCourse(@PathVariable("id") String id);
 
+    @GetMapping("/dashboard/tutor")
+    ApiResponse<com.lms.frontend.dto.TutorDashboardResponse> getTutorDashboard();
 }

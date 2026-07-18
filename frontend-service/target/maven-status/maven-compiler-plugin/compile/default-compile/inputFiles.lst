@@ -16,6 +16,7 @@ C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\CourseResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\EnrollmentRequest.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\EnrollmentResponse.java
+C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\EnrollmentStatusDTO.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\JwtResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\LessonProgressRequest.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\LessonRequest.java
@@ -28,6 +29,8 @@ C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\ResourceResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\SectionRequest.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\SectionResponse.java
+C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\StudentDashboardResponse.java
+C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\TutorDashboardResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\UserProfileResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\dto\ValidationReportResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\frontend-service\src\main\java\com\lms\frontend\FrontendServiceApplication.java

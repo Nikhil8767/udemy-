@@ -32,4 +32,9 @@ public class CourseResponse {
     private LocalDateTime publishedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long totalStudents;
+    private Long totalEnrollments;
+    private Double averageRating;
+    private Long courseCompletionCount;
+    private LocalDateTime lastEnrollmentDate;
 }

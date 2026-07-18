@@ -73,6 +73,22 @@ public class EnrollmentController {
         );
     }
 
+    @GetMapping("/{courseId}/status")
+    @Operation(summary = "Get detailed enrollment status")
+    public ResponseEntity<ApiResponse<com.lms.enrollment.dto.response.EnrollmentStatusDTO>> getEnrollmentStatus(
+            @PathVariable String courseId,
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role) {
+        com.lms.enrollment.dto.response.EnrollmentStatusDTO status = enrollmentService.getEnrollmentStatus(courseId, userId, role);
+        return ResponseEntity.ok(
+                ApiResponse.<com.lms.enrollment.dto.response.EnrollmentStatusDTO>builder()
+                        .success(true)
+                        .message("Enrollment status fetched successfully.")
+                        .data(status)
+                        .build()
+        );
+    }
+
     @GetMapping("/{courseId}/count")
     @Operation(summary = "Get student count for course")
     public ResponseEntity<ApiResponse<Long>> getCourseStudentCount(

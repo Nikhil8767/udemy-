@@ -3,7 +3,11 @@ com\lms\frontend\dto\LessonProgressRequest.class
 com\lms\frontend\dto\ProfileRequest.class
 com\lms\frontend\dto\UserProfileResponse$UserProfileResponseBuilder.class
 com\lms\frontend\dto\EnrollmentRequest.class
+com\lms\frontend\dto\StudentDashboardResponse.class
 com\lms\frontend\client\EnrollmentServiceClient.class
+com\lms\frontend\dto\TutorDashboardResponse.class
+com\lms\frontend\dto\EnrollmentStatusDTO$EnrollmentStatusDTOBuilder.class
+com\lms\frontend\dto\StudentDashboardResponse$StudentDashboardResponseBuilder.class
 com\lms\frontend\controller\TutorController.class
 com\lms\frontend\dto\JwtResponse.class
 com\lms\frontend\controller\StudentController.class
@@ -20,6 +24,7 @@ com\lms\frontend\client\ContentServiceClient.class
 com\lms\frontend\dto\EnrollmentResponse.class
 com\lms\frontend\dto\ResourceRequest.class
 com\lms\frontend\dto\ValidationReportResponse.class
+com\lms\frontend\dto\TutorDashboardResponse$TutorDashboardResponseBuilder.class
 com\lms\frontend\controller\ProfileController.class
 com\lms\frontend\client\CourseServiceClient.class
 com\lms\frontend\dto\CategoryResponse.class
@@ -27,6 +32,7 @@ com\lms\frontend\dto\CourseResponse.class
 com\lms\frontend\dto\MyCourseDTO$MyCourseDTOBuilder.class
 com\lms\frontend\controller\DashboardController.class
 com\lms\frontend\controller\AuthController.class
+com\lms\frontend\dto\EnrollmentStatusDTO.class
 com\lms\frontend\security\JwtAuthenticationToken.class
 com\lms\frontend\dto\SectionResponse.class
 com\lms\frontend\client\AuthServiceClient.class

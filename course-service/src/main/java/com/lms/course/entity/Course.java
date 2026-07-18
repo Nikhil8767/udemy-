@@ -65,6 +65,24 @@ public class Course {
     @Builder.Default
     private boolean isFeatured = false;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Long totalStudents = 0L;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Long totalEnrollments = 0L;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Double averageRating = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Long courseCompletionCount = 0L;
+
+    private LocalDateTime lastEnrollmentDate;
+
     private LocalDateTime publishedAt;
 
     @CreationTimestamp

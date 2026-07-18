@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.lms.user.service.ProfileCompletionService;
+
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
+    private final ProfileCompletionService profileCompletionService;
 
     @PostMapping("/profile")
     @Operation(summary = "Create profile for authenticated user")
@@ -42,13 +45,14 @@ public class UserController {
     @GetMapping("/me")
     @Operation(summary = "Return authenticated user's profile")
     public ResponseEntity<ApiResponse<ProfileResponse>> getMyProfile(
-            @RequestHeader("X-User-Id") String userId) {
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "ROLE_STUDENT") String role) {
         UserProfile profile = userService.getProfile(userId);
         return ResponseEntity.ok(
                 ApiResponse.<ProfileResponse>builder()
                         .success(true)
                         .message("Profile retrieved successfully.")
-                        .data(mapToResponse(profile))
+                        .data(mapToResponse(profile, role))
                         .build()
         );
     }
@@ -78,7 +82,7 @@ public class UserController {
                 ApiResponse.<ProfileResponse>builder()
                         .success(true)
                         .message("Profile retrieved successfully.")
-                        .data(mapToResponse(profile))
+                        .data(mapToResponse(profile, "ROLE_STUDENT"))
                         .build()
         );
     }
@@ -89,7 +93,7 @@ public class UserController {
             @RequestHeader("X-User-Role") String role) {
         checkAdmin(role);
         List<ProfileResponse> profiles = userService.getAllProfiles().stream()
-                .map(this::mapToResponse)
+                .map(p -> mapToResponse(p, "ROLE_STUDENT"))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(
                 ApiResponse.<List<ProfileResponse>>builder()
@@ -121,7 +125,7 @@ public class UserController {
         }
     }
 
-    private ProfileResponse mapToResponse(UserProfile profile) {
+    private ProfileResponse mapToResponse(UserProfile profile, String role) {
         return ProfileResponse.builder()
                 .id(profile.getId())
                 .authUserId(profile.getAuthUserId())
@@ -146,30 +150,7 @@ public class UserController {
                 .teachingExperience(profile.getTeachingExperience())
                 .skills(profile.getSkills())
                 .preferredLanguage(profile.getPreferredLanguage())
-                .completionPercentage(calculateCompletion(profile))
+                .completionPercentage(profileCompletionService.calculateCompletionPercentage(profile, role))
                 .build();
-    }
-    
-    private int calculateCompletion(UserProfile profile) {
-        int totalFields = 16;
-        int filled = 0;
-        if (profile.getFirstName() != null && !profile.getFirstName().trim().isEmpty()) filled++;
-        if (profile.getLastName() != null && !profile.getLastName().trim().isEmpty()) filled++;
-        if (profile.getDisplayName() != null && !profile.getDisplayName().trim().isEmpty()) filled++;
-        if (profile.getPhoneNumber() != null && !profile.getPhoneNumber().trim().isEmpty()) filled++;
-        if (profile.getBio() != null && !profile.getBio().trim().isEmpty()) filled++;
-        if (profile.getAbout() != null && !profile.getAbout().trim().isEmpty()) filled++;
-        if (profile.getQualifications() != null && !profile.getQualifications().trim().isEmpty()) filled++;
-        if (profile.getTeachingExperience() != null && !profile.getTeachingExperience().trim().isEmpty()) filled++;
-        if (profile.getSkills() != null && !profile.getSkills().trim().isEmpty()) filled++;
-        if (profile.getLinkedinUrl() != null && !profile.getLinkedinUrl().trim().isEmpty()) filled++;
-        if (profile.getWebsiteUrl() != null && !profile.getWebsiteUrl().trim().isEmpty()) filled++;
-        if (profile.getProfileImageUrl() != null && !profile.getProfileImageUrl().trim().isEmpty()) filled++;
-        if (profile.getCountry() != null && !profile.getCountry().trim().isEmpty()) filled++;
-        if (profile.getState() != null && !profile.getState().trim().isEmpty()) filled++;
-        if (profile.getCity() != null && !profile.getCity().trim().isEmpty()) filled++;
-        if (profile.getPreferredLanguage() != null && !profile.getPreferredLanguage().trim().isEmpty()) filled++;
-        
-        return (int) Math.round(((double) filled / totalFields) * 100);
     }
 }

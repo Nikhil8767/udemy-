@@ -191,6 +191,11 @@ public class CourseController {
                 .publishedAt(course.getPublishedAt())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
+                .totalStudents(course.getTotalStudents())
+                .totalEnrollments(course.getTotalEnrollments())
+                .averageRating(course.getAverageRating())
+                .courseCompletionCount(course.getCourseCompletionCount())
+                .lastEnrollmentDate(course.getLastEnrollmentDate())
                 .build();
     }
 }

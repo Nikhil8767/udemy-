@@ -34,4 +34,9 @@ public interface EnrollmentServiceClient {
             @PathVariable("lessonId") String lessonId,
             @RequestBody LessonProgressRequest request);
 
+    @GetMapping("/{courseId}/status")
+    ApiResponse<com.lms.frontend.dto.EnrollmentStatusDTO> getEnrollmentStatus(@PathVariable("courseId") String courseId);
+
+    @GetMapping("/dashboard/student")
+    ApiResponse<com.lms.frontend.dto.StudentDashboardResponse> getStudentDashboard();
 }

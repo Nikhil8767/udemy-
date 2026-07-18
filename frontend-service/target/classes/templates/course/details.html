@@ -43,10 +43,22 @@
                                 <span th:unless="${course.price > 0}">FREE</span>
                             </h2>
                             
-                            <form th:action="@{/student/enroll}" method="post">
-                                <input type="hidden" name="courseId" th:value="${course.id}">
-                                <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">Enroll Now</button>
-                            </form>
+                            <div th:if="${enrollmentStatus != null and enrollmentStatus.enrolled}">
+                                <a th:href="@{/courses/{id}/learn(id=${course.id})}" class="btn btn-success w-100 btn-lg mb-3">
+                                    <i class="bi bi-play-circle me-2"></i> Continue Learning
+                                </a>
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" th:style="'width: ' + ${enrollmentStatus.progressPercentage} + '%'" th:attr="aria-valuenow=${enrollmentStatus.progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <p class="text-center small text-muted mb-0"><span th:text="${enrollmentStatus.progressPercentage}">0</span>% Completed</p>
+                            </div>
+                            
+                            <div th:unless="${enrollmentStatus != null and enrollmentStatus.enrolled}">
+                                <form th:action="@{/student/enroll}" method="post">
+                                    <input type="hidden" name="courseId" th:value="${course.id}">
+                                    <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">Enroll Now</button>
+                                </form>
+                            </div>
                             
                             <p class="text-center text-muted small mb-0">Full Lifetime Access</p>
                             

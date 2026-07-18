@@ -14,4 +14,5 @@ public interface EnrollmentService {
     boolean markLessonCompleted(String courseId, String lessonId, String userId, String role, LessonProgressRequest request);
     Integer getProgress(String courseId, String userId, String role);
     void dropCourse(String courseId, String userId, String role);
+    com.lms.enrollment.dto.response.EnrollmentStatusDTO getEnrollmentStatus(String courseId, String userId, String role);
 }

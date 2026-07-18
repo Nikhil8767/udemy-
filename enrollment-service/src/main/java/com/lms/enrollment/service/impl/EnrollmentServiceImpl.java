@@ -81,7 +81,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         UUID studentId = UUID.fromString(userId);
         
         if (enrollmentRepository.existsByStudentIdAndCourseId(studentId, request.getCourseId())) {
-            throw new DuplicateResourceException("Already enrolled in this course.");
+            return;
         }
 
         verifyCoursePublished(request.getCourseId().toString(), userId, role);
@@ -201,5 +201,64 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         
         enrollment.setStatus(EnrollmentStatus.DROPPED);
         enrollmentRepository.save(enrollment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public com.lms.enrollment.dto.response.EnrollmentStatusDTO getEnrollmentStatus(String courseId, String userId, String role) {
+        if (!"ROLE_STUDENT".equalsIgnoreCase(role)) {
+            return com.lms.enrollment.dto.response.EnrollmentStatusDTO.builder().enrolled(false).build();
+        }
+        
+        return enrollmentRepository.findByStudentIdAndCourseId(UUID.fromString(userId), UUID.fromString(courseId))
+            .map(enrollment -> {
+                UUID resumeLessonId = enrollment.getLastAccessedLessonId();
+                if (resumeLessonId == null || isLessonCompleted(enrollment.getId(), resumeLessonId)) {
+                    resumeLessonId = findFirstIncompleteLesson(courseId, enrollment.getId());
+                    if (resumeLessonId == null) {
+                        resumeLessonId = enrollment.getLastAccessedLessonId(); // fallback
+                    }
+                }
+                
+                return com.lms.enrollment.dto.response.EnrollmentStatusDTO.builder()
+                        .enrolled(true)
+                        .enrollmentId(enrollment.getId())
+                        .progressPercentage(enrollment.getProgressPercentage())
+                        .lastAccessedLessonId(resumeLessonId)
+                        .completedLessons(enrollment.getCompletedLessons())
+                        .enrollmentDate(enrollment.getEnrolledAt())
+                        .build();
+            })
+            .orElse(com.lms.enrollment.dto.response.EnrollmentStatusDTO.builder().enrolled(false).build());
+    }
+
+    private boolean isLessonCompleted(UUID enrollmentId, UUID lessonId) {
+        return lessonProgressRepository.findByEnrollmentIdAndLessonId(enrollmentId, lessonId)
+                .map(LessonProgress::isCompleted)
+                .orElse(false);
+    }
+
+    private UUID findFirstIncompleteLesson(String courseId, UUID enrollmentId) {
+        try {
+            ApiResponse<List<SectionResponse>> sections = contentServiceClient.getCourseSections(courseId);
+            if (sections != null && sections.isSuccess() && sections.getData() != null) {
+                UUID lastLessonId = null;
+                for (SectionResponse section : sections.getData()) {
+                    ApiResponse<List<LessonResponse>> lessons = contentServiceClient.getSectionLessons(section.getId().toString());
+                    if (lessons != null && lessons.isSuccess() && lessons.getData() != null) {
+                        for (LessonResponse lesson : lessons.getData()) {
+                            lastLessonId = lesson.getId();
+                            if (!isLessonCompleted(enrollmentId, lesson.getId())) {
+                                return lesson.getId();
+                            }
+                        }
+                    }
+                }
+                return lastLessonId; // If all completed, return the very last lesson
+            }
+        } catch (Exception e) {
+            // Log warning
+        }
+        return null;
     }
 }
