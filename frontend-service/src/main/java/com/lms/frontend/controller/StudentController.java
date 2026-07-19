@@ -99,7 +99,7 @@ public class StudentController {
             @PathVariable String courseId,
             @PathVariable String lessonId) {
         try {
-            LessonProgressRequest request = new LessonProgressRequest(true);
+            LessonProgressRequest request = new LessonProgressRequest(true, 0, 0);
             ApiResponse<Void> response = enrollmentServiceClient.markLessonCompleted(courseId, lessonId, request);
             if (response != null && response.isSuccess()) {
                 return org.springframework.http.ResponseEntity.ok(java.util.Map.of(

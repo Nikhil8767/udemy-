@@ -7,7 +7,7 @@
         .lms-navbar { background: #13151f; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 0.75rem 1.5rem; position: sticky; top: 0; z-index: 1000; }
         .learning-sidebar { background: #1a1d27; border-right: 1px solid rgba(255,255,255,0.07); height: calc(100vh - 65px); position: sticky; top: 65px; overflow-y: auto; }
         
-        .lesson-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1.25rem; color: rgba(255,255,255,0.7); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease; font-size: 0.875rem; }
+        .lesson-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1.25rem; color: rgba(255,255,255,0.7); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease; font-size: 0.875rem; cursor: pointer; }
         .lesson-link:hover:not(.locked) { background: rgba(99,102,241,0.12); color: #fff; }
         .lesson-link.active { background: rgba(99,102,241,0.25); color: #a5b4fc; border-left: 3px solid #6366f1; }
         .lesson-link.locked { opacity: 0.5; cursor: not-allowed; }
@@ -20,7 +20,7 @@
         
         .section-meta { font-size: 0.75rem; color: rgba(255,255,255,0.5); font-weight: 400; display: block; margin-top: 4px; }
         
-        .content-panel { background: #13151f; border-radius: 12px; overflow: hidden; }
+        .content-panel { background: #13151f; border-radius: 12px; overflow: hidden; transition: opacity 0.3s ease; }
         .content-header { background: #1a1d27; padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.07); }
         
         .nav-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.6rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: all 0.2s; cursor: pointer; }
@@ -49,7 +49,7 @@
 </head>
 <body>
 <main layout:fragment="content" class="p-0">
-    <div th:if="${course != null}">
+    <div th:if="${course != null}" th:attr="data-course-id=${course.id}" id="courseContainer">
         
         <!-- ============================
              TOP NAVBAR
@@ -74,13 +74,13 @@
                 <div class="text-end d-none d-lg-block">
                     <div class="d-flex justify-content-between align-items-center" style="font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.7);">
                         <span>Overall Progress</span>
-                        <span id="progress-text" th:text="${enrollmentStatus != null and enrollmentStatus.progressPercentage != null ? enrollmentStatus.progressPercentage + '%' : '0%'}">0%</span>
+                        <span id="progress-text">0%</span>
                     </div>
                     <div class="progress-bar-container">
-                        <div id="progress-bar" class="progress-bar-fill" th:style="'width: ' + (${enrollmentStatus != null and enrollmentStatus.progressPercentage != null ? enrollmentStatus.progressPercentage : 0}) + '%'"></div>
+                        <div id="progress-bar" class="progress-bar-fill" style="width: 0%"></div>
                     </div>
                     <div style="font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 3px;" id="completed-count-text">
-                        <span th:text="${enrollmentStatus != null ? enrollmentStatus.completedLessons : 0}"></span> / <span th:text="${#lists.size(allLessons)}">0</span> lessons completed
+                        <span>0</span> / <span id="totalLessonsCount" th:text="${#lists.size(allLessons)}">0</span> lessons completed
                     </div>
                 </div>
             </div>
@@ -97,15 +97,8 @@
                 
                 <div class="accordion accordion-flush" id="curriculumAccordion">
                     <div class="accordion-item" th:each="section, iterStat : ${sections}">
-                        
                         <h2 class="accordion-header" th:id="'heading' + ${iterStat.index}">
-                            <!-- Auto expand the section containing the current lesson -->
-                            <button class="accordion-button" 
-                                    th:classappend="${currentLesson != null and #lists.contains(section.lessons, currentLesson)} ? '' : 'collapsed'"
-                                    type="button" 
-                                    data-bs-toggle="collapse" 
-                                    th:data-bs-target="'#collapse' + ${iterStat.index}" 
-                                    aria-expanded="true">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapse' + ${iterStat.index}">
                                 <div>
                                     <span th:text="${section.title}">Section</span>
                                     <span class="section-meta">
@@ -117,32 +110,18 @@
                             </button>
                         </h2>
                         
-                        <div th:id="'collapse' + ${iterStat.index}" 
-                             class="accordion-collapse collapse" 
-                             th:classappend="${currentLesson != null and #lists.contains(section.lessons, currentLesson)} ? 'show' : ''"
-                             data-bs-parent="#curriculumAccordion">
+                        <div th:id="'collapse' + ${iterStat.index}" class="accordion-collapse collapse" data-bs-parent="#curriculumAccordion">
                             <div class="accordion-body">
                                 <div th:if="${section.lessons != null}" th:each="lesson : ${section.lessons}">
-                                    
-                                    <div th:with="lessonIndex=${lessonIndexes[lesson.id]},
-                                                  isCompleted=${enrollmentStatus != null and enrollmentStatus.completedLessonIds != null and enrollmentStatus.completedLessonIds.contains(lesson.id)},
-                                                  isLocked=${lessonIndex > firstIncompleteLessonIndex},
-                                                  isCurrent=${currentLesson != null and currentLesson.id == lesson.id}">
-                                        
-                                        <a th:href="${isLocked} ? '#' : @{/courses/{id}/learn(id=${course.id}, lessonId=${lesson.id})}"
-                                           class="lesson-link"
+                                    <div th:with="lessonIndex=${lessonIndexes[lesson.id]}">
+                                        <!-- SPA Navigation Links -->
+                                        <a class="lesson-link locked"
                                            th:id="'lesson-link-' + ${lesson.id}"
-                                           th:classappend="${isCurrent ? 'active' : ''} + ' ' + ${isLocked ? 'locked' : ''}"
-                                           th:title="${isLocked ? 'Complete previous lessons to unlock' : ''}">
-                                            
+                                           th:data-lesson-id="${lesson.id}">
                                             <!-- State Icon -->
                                             <div style="width: 20px; text-align: center;">
-                                                <i th:id="'icon-' + ${lesson.id}" th:if="${isCompleted}" class="bi bi-check-circle-fill text-success fs-6"></i>
-                                                <i th:id="'icon-' + ${lesson.id}" th:if="${isCurrent and !isCompleted}" class="bi bi-play-circle-fill text-primary fs-6"></i>
-                                                <i th:id="'icon-' + ${lesson.id}" th:if="${isLocked}" class="bi bi-lock-fill text-secondary fs-6"></i>
-                                                <i th:id="'icon-' + ${lesson.id}" th:if="${!isCompleted and !isCurrent and !isLocked}" class="bi bi-circle text-secondary fs-6"></i>
+                                                <i th:id="'icon-' + ${lesson.id}" class="bi bi-lock-fill text-secondary fs-6"></i>
                                             </div>
-                                            
                                             <div class="flex-grow-1 ms-2">
                                                 <div th:text="${lessonIndex + 1} + '. ' + ${lesson.title}" style="line-height: 1.2;">Lesson</div>
                                                 <div th:if="${lesson.durationMinutes != null}" style="font-size:0.7rem; color: rgba(255,255,255,0.35); margin-top: 3px;">
@@ -154,7 +133,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
             </div>
@@ -162,72 +140,60 @@
             <!-- ============================
                  MAIN CONTENT AREA
                  ============================ -->
-            <div class="flex-grow-1 p-3 p-lg-4" style="height: calc(100vh - 65px); overflow-y: auto; position: relative;">
+            <div class="flex-grow-1 p-3 p-lg-4" style="height: calc(100vh - 65px); overflow-y: auto; position: relative;" id="mainContentScroll">
                 
                 <!-- PREV/NEXT FLOATING BAR -->
-                <div class="d-flex justify-content-between align-items-center mb-3" th:if="${currentLesson != null}">
-                    <a th:href="${previousLessonId != null} ? @{/courses/{id}/learn(id=${course.id}, lessonId=${previousLessonId})} : '#'" 
-                       class="nav-btn nav-btn-secondary" th:classappend="${previousLessonId == null ? 'disabled' : ''}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button id="topPrevBtn" class="nav-btn nav-btn-secondary disabled">
                         <i class="bi bi-arrow-left"></i> Previous Lesson
-                    </a>
-                    <a th:href="${nextLessonId != null} ? @{/courses/{id}/learn(id=${course.id}, lessonId=${nextLessonId})} : '#'" 
-                       id="topNextBtn"
-                       class="nav-btn nav-btn-secondary" th:classappend="${nextLessonId == null ? 'disabled' : ''}">
+                    </button>
+                    <button id="topNextBtn" class="nav-btn nav-btn-secondary disabled">
                         Next Lesson <i class="bi bi-arrow-right"></i>
-                    </a>
+                    </button>
                 </div>
 
                 <div id="lessonContentArea">
-                    <!-- No lesson selected -->
-                    <div th:unless="${currentLesson != null}" class="d-flex align-items-center justify-content-center" style="min-height:60vh;">
-                        <div class="text-center" style="color: rgba(255,255,255,0.4);">
-                            <i class="bi bi-play-circle" style="font-size: 4rem;"></i>
-                            <h5 class="mt-3 fw-bold" style="color: rgba(255,255,255,0.6);">Select a lesson to start learning</h5>
-                        </div>
-                    </div>
-
-                    <div th:if="${currentLesson != null}" class="content-panel mb-4">
-                        <!-- Lesson Header -->
+                    <!-- RENDER ALL LESSONS INITIALLY HIDDEN -->
+                    <div th:each="lesson : ${allLessons}" class="content-panel mb-4 lesson-container" th:id="'lesson-container-' + ${lesson.id}" style="display: none;">
                         <div class="content-header">
-                            <h3 class="fw-bold text-white mb-2" th:text="${currentLesson.title}">Lesson Title</h3>
-                            <p style="color: rgba(255,255,255,0.6);" th:if="${currentLesson.description}" th:text="${currentLesson.description}"></p>
+                            <h3 class="fw-bold text-white mb-2" th:text="${lesson.title}">Lesson Title</h3>
+                            <p style="color: rgba(255,255,255,0.6);" th:if="${lesson.description}" th:text="${lesson.description}"></p>
                         </div>
 
-                        <!-- Content Rendering -->
                         <div class="p-3 p-lg-4">
                             <!-- VIDEO -->
-                            <div th:if="${currentLesson.contentType == 'VIDEO' and currentLesson.videoUrl != null}" class="video-player-wrapper mb-4">
+                            <div th:if="${lesson.contentType == 'VIDEO' and lesson.videoUrl != null}" class="video-player-wrapper mb-4">
                                 <div class="ratio ratio-16x9">
-                                    <video controls class="w-100" th:src="${currentLesson.videoUrl}" controlslist="nodownload"></video>
+                                    <video controls class="w-100" th:src="${lesson.videoUrl}" controlslist="nodownload"></video>
                                 </div>
                             </div>
 
                             <!-- YOUTUBE -->
-                            <div th:if="${currentLesson.contentType == 'YOUTUBE' and currentLesson.videoUrl != null}" class="video-player-wrapper mb-4">
+                            <div th:if="${lesson.contentType == 'YOUTUBE' and lesson.videoUrl != null}" class="video-player-wrapper mb-4">
                                 <div class="ratio ratio-16x9">
-                                    <iframe th:src="${currentLesson.videoUrl}" title="YouTube Video" frameborder="0" allowfullscreen></iframe>
+                                    <iframe th:src="${lesson.videoUrl}" title="YouTube Video" frameborder="0" allowfullscreen></iframe>
                                 </div>
                             </div>
 
                             <!-- PDF -->
-                            <div th:if="${currentLesson.contentType == 'PDF' and currentLesson.pdfUrl != null}" class="mb-4">
+                            <div th:if="${lesson.contentType == 'PDF' and lesson.pdfUrl != null}" class="mb-4">
                                 <div style="background: #fff; border-radius: 12px; overflow: hidden; min-height: 600px;">
-                                    <object th:data="${currentLesson.pdfUrl}" type="application/pdf" width="100%" height="650px">
-                                        <p class="p-4 text-center text-dark">Your browser cannot embed PDFs. <a th:href="${currentLesson.pdfUrl}" target="_blank">Download PDF</a></p>
+                                    <object th:data="${lesson.pdfUrl}" type="application/pdf" width="100%" height="650px">
+                                        <p class="p-4 text-center text-dark">Your browser cannot embed PDFs. <a th:href="${lesson.pdfUrl}" target="_blank">Download PDF</a></p>
                                     </object>
                                 </div>
                             </div>
 
                             <!-- ARTICLE -->
-                            <div th:if="${currentLesson.contentType == 'ARTICLE'}" class="mb-4">
-                                <div class="article-content" th:utext="${currentLesson.articleContent}"></div>
+                            <div th:if="${lesson.contentType == 'ARTICLE'}" class="mb-4">
+                                <div class="article-content" th:utext="${lesson.articleContent}"></div>
                             </div>
 
                             <!-- RESOURCES -->
-                            <div th:if="${currentLesson.resources != null and !currentLesson.resources.isEmpty()}" class="mt-4 p-4" style="background: rgba(255,255,255,0.03); border-radius: 10px;">
+                            <div th:if="${lesson.resources != null and !lesson.resources.isEmpty()}" class="mt-4 p-4" style="background: rgba(255,255,255,0.03); border-radius: 10px;">
                                 <h6 class="text-white fw-bold mb-3"><i class="bi bi-paperclip me-2"></i>Resources</h6>
                                 <div class="d-flex flex-column gap-2">
-                                    <a th:each="res : ${currentLesson.resources}" th:href="${res.fileUrl}" target="_blank" class="btn btn-sm btn-outline-light text-start d-flex justify-content-between align-items-center" style="border-radius: 8px;">
+                                    <a th:each="res : ${lesson.resources}" th:href="${res.fileUrl}" target="_blank" class="btn btn-sm btn-outline-light text-start d-flex justify-content-between align-items-center" style="border-radius: 8px;">
                                         <span><i class="bi bi-file-earmark-text me-2"></i><span th:text="${res.title}"></span></span>
                                         <i class="bi bi-download"></i>
                                     </a>
@@ -241,32 +207,23 @@
                                     <small style="color: rgba(255,255,255,0.4);">Mark it as complete to update your progress and unlock the next lesson.</small>
                                 </div>
                                 
-                                <div th:with="isCompleted=${enrollmentStatus != null and enrollmentStatus.completedLessonIds != null and enrollmentStatus.completedLessonIds.contains(currentLesson.id)}">
-                                    
-                                    <button class="nav-btn px-4" 
-                                            th:classappend="${isCompleted} ? 'nav-btn-completed' : 'nav-btn-success'"
-                                            id="markCompleteBtn"
-                                            th:data-course-id="${course.id}"
-                                            th:data-lesson-id="${currentLesson.id}"
-                                            th:data-next-lesson-id="${nextLessonId}"
-                                            th:data-is-completed="${isCompleted}">
-                                        <i th:class="${isCompleted} ? 'bi bi-check-circle-fill me-2' : 'bi bi-check-circle me-2'"></i> 
-                                        <span class="btn-text" th:text="${isCompleted} ? 'Completed' : 'Mark Lesson Complete'"></span>
+                                <div>
+                                    <button class="nav-btn px-4 markCompleteBtn nav-btn-success" th:data-lesson-id="${lesson.id}">
+                                        <i class="bi bi-check-circle me-2"></i> 
+                                        <span class="btn-text">Mark Lesson Complete</span>
                                     </button>
                                     
-                                    <a th:href="${nextLessonId != null} ? @{/courses/{id}/learn(id=${course.id}, lessonId=${nextLessonId})} : '#'" 
-                                       id="bottomNextBtn"
-                                       class="nav-btn nav-btn-secondary ms-2 px-4" th:classappend="${nextLessonId == null or (!isCompleted and nextLessonId != null)} ? 'disabled' : ''">
+                                    <button class="nav-btn nav-btn-secondary ms-2 px-4 bottomNextBtn disabled">
                                         Next Lesson <i class="bi bi-arrow-right ms-2"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 100% COMPLETION SCREEN (Hidden by default, shown via JS if completed now, or rendered if already 100%) -->
-                <div id="completionScreen" class="completion-screen" th:style="${enrollmentStatus != null and enrollmentStatus.progressPercentage == 100} ? 'display:block;' : 'display:none;'">
+                <!-- 100% COMPLETION SCREEN -->
+                <div id="completionScreen" class="completion-screen" style="display:none;">
                     <i class="bi bi-award-fill completion-icon"></i>
                     <h2 class="fw-bold text-white mb-3">🎉 Congratulations!</h2>
                     <p style="color: rgba(255,255,255,0.7); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
@@ -274,7 +231,7 @@
                     </p>
                     <div class="d-flex justify-content-center gap-5 mt-5 mb-5">
                         <div class="text-center">
-                            <h3 class="fw-bold text-white mb-1" id="final-completed-count" th:text="${enrollmentStatus != null ? enrollmentStatus.completedLessons : 0}">0</h3>
+                            <h3 class="fw-bold text-white mb-1" id="final-completed-count">0</h3>
                             <small style="color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Lessons Completed</small>
                         </div>
                         <div class="text-center">
@@ -282,7 +239,7 @@
                             <small style="color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Overall Progress</small>
                         </div>
                         <div class="text-center">
-                            <h3 class="fw-bold text-white mb-1" id="completion-date-text" th:text="${enrollmentStatus != null and enrollmentStatus.progressPercentage == 100 ? #temporals.format(#temporals.createNow(), 'MMM dd, yyyy') : 'Today'}">Today</h3>
+                            <h3 class="fw-bold text-white mb-1" id="completion-date-text">Today</h3>
                             <small style="color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Completion Date</small>
                         </div>
                     </div>
@@ -319,103 +276,252 @@
 </div>
 
 <th:block layout:fragment="scripts">
-    <script>
+    <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            const markCompleteBtn = document.getElementById('markCompleteBtn');
-            const totalLessonsElement = document.querySelector('#completed-count-text span:nth-child(2)');
-            const totalLessons = totalLessonsElement ? (parseInt(totalLessonsElement.innerText) || 1) : 1;
-            let completedLessons = parseInt(document.getElementById('final-completed-count')?.innerText) || 0;
-
-            if (markCompleteBtn) {
-                markCompleteBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const isAlreadyCompleted = this.getAttribute('data-is-completed') === 'true';
-                    if (isAlreadyCompleted) return;
-
-                    const courseId = this.getAttribute('data-course-id');
-                    const lessonId = this.getAttribute('data-lesson-id');
-                    const nextLessonId = this.getAttribute('data-next-lesson-id');
+            const courseContainer = document.getElementById('courseContainer');
+            if (!courseContainer) return;
+            
+            const courseId = courseContainer.getAttribute('data-course-id');
+            const storageKey = 'course-progress-' + courseId;
+            
+            // Build ordered array of lesson IDs from Thymeleaf
+            /*<![CDATA[*/
+            const allLessons = /*[[${allLessons}]]*/ [];
+            /*]]>*/
+            const orderedLessonIds = allLessons.map(l => l.id.toString());
+            const totalLessons = orderedLessonIds.length;
+            
+            // Default State
+            let state = {
+                completedLessonIds: [],
+                lastAccessedLessonId: orderedLessonIds.length > 0 ? orderedLessonIds[0] : null,
+                progressPercentage: 0,
+                completedLessonsCount: 0
+            };
+            
+            // Load from localStorage
+            const savedState = localStorage.getItem(storageKey);
+            if (savedState) {
+                state = JSON.parse(savedState);
+            }
+            
+            // Ensure first lesson is always in the state if nothing saved
+            if (!state.lastAccessedLessonId && orderedLessonIds.length > 0) {
+                state.lastAccessedLessonId = orderedLessonIds[0];
+            }
+            
+            // DOM Elements
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const countTextSpan = document.querySelector('#completed-count-text span:first-child');
+            const topPrevBtn = document.getElementById('topPrevBtn');
+            const topNextBtn = document.getElementById('topNextBtn');
+            
+            // Utility: Save State
+            function saveState() {
+                state.completedLessonsCount = state.completedLessonIds.length;
+                state.progressPercentage = totalLessons > 0 ? Math.round((state.completedLessonsCount / totalLessons) * 100) : 0;
+                localStorage.setItem(storageKey, JSON.stringify(state));
+            }
+            
+            // Utility: Update UI Metrics
+            function updateUIMetrics() {
+                if (progressBar) progressBar.style.width = state.progressPercentage + '%';
+                if (progressText) progressText.innerText = state.progressPercentage + '%';
+                if (countTextSpan) countTextSpan.innerText = state.completedLessonsCount;
+            }
+            
+            // Utility: Switch Lesson
+            window.switchLesson = function(lessonId) {
+                if (!orderedLessonIds.includes(lessonId)) return;
+                
+                // Hide all lessons
+                document.querySelectorAll('.lesson-container').forEach(el => {
+                    el.style.display = 'none';
+                    el.style.opacity = '0';
+                });
+                
+                // Hide Completion Screen
+                document.getElementById('completionScreen').style.display = 'none';
+                
+                // If 100% and it's the end of course, maybe show completion screen, but let's allow revisiting lessons.
+                // Wait, if it's 100%, we should show the completion screen if they try to go PAST the last lesson?
+                // The requirements say: "If last lesson completed -> Show Congratulations!"
+                
+                // Show Target Lesson
+                const targetContainer = document.getElementById('lesson-container-' + lessonId);
+                if (targetContainer) {
+                    targetContainer.style.display = 'block';
+                    // small delay for fade-in effect
+                    setTimeout(() => targetContainer.style.opacity = '1', 50);
+                }
+                
+                // Update State
+                state.lastAccessedLessonId = lessonId;
+                saveState();
+                
+                // Update Sidebar Classes
+                document.querySelectorAll('.lesson-link').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('data-lesson-id') === lessonId) {
+                        link.classList.add('active');
+                        // Auto-expand accordion
+                        const collapseDiv = link.closest('.accordion-collapse');
+                        if (collapseDiv && !collapseDiv.classList.contains('show')) {
+                            const bsCollapse = new bootstrap.Collapse(collapseDiv, { toggle: false });
+                            bsCollapse.show();
+                        }
+                    }
+                });
+                
+                // Update Prev/Next Buttons
+                const currentIndex = orderedLessonIds.indexOf(lessonId);
+                
+                // Prev Button
+                if (currentIndex > 0) {
+                    topPrevBtn.classList.remove('disabled');
+                    topPrevBtn.onclick = () => switchLesson(orderedLessonIds[currentIndex - 1]);
+                } else {
+                    topPrevBtn.classList.add('disabled');
+                    topPrevBtn.onclick = null;
+                }
+                
+                // Next Button
+                const isCurrentCompleted = state.completedLessonIds.includes(lessonId);
+                if (currentIndex < totalLessons - 1 && isCurrentCompleted) {
+                    const nextId = orderedLessonIds[currentIndex + 1];
+                    topNextBtn.classList.remove('disabled');
+                    topNextBtn.onclick = () => switchLesson(nextId);
                     
-                    // Loading state
+                    // Bottom next buttons inside the container
+                    const bottomNextBtn = targetContainer.querySelector('.bottomNextBtn');
+                    if (bottomNextBtn) {
+                        bottomNextBtn.classList.remove('disabled');
+                        bottomNextBtn.onclick = () => switchLesson(nextId);
+                    }
+                } else {
+                    topNextBtn.classList.add('disabled');
+                    topNextBtn.onclick = null;
+                    const bottomNextBtn = targetContainer.querySelector('.bottomNextBtn');
+                    if (bottomNextBtn) bottomNextBtn.classList.add('disabled');
+                }
+                
+                // Scroll to top of content
+                document.getElementById('mainContentScroll').scrollTop = 0;
+            };
+
+            // Utility: Refresh Sidebar Locks & Icons
+            function refreshSidebar() {
+                let firstIncompleteIndex = totalLessons; // Default: all unlocked
+                for (let i = 0; i < totalLessons; i++) {
+                    if (!state.completedLessonIds.includes(orderedLessonIds[i])) {
+                        firstIncompleteIndex = i;
+                        break;
+                    }
+                }
+
+                for (let i = 0; i < totalLessons; i++) {
+                    const lId = orderedLessonIds[i];
+                    const link = document.getElementById('lesson-link-' + lId);
+                    const icon = document.getElementById('icon-' + lId);
+                    
+                    if (!link || !icon) continue;
+                    
+                    const isCompleted = state.completedLessonIds.includes(lId);
+                    const isLocked = i > firstIncompleteIndex;
+                    
+                    if (isCompleted) {
+                        link.classList.remove('locked');
+                        icon.className = 'bi bi-check-circle-fill text-success fs-6';
+                    } else if (isLocked) {
+                        link.classList.add('locked');
+                        icon.className = 'bi bi-lock-fill text-secondary fs-6';
+                    } else {
+                        // Unlocked but not completed (current or just available)
+                        link.classList.remove('locked');
+                        icon.className = (state.lastAccessedLessonId === lId) 
+                            ? 'bi bi-play-circle-fill text-primary fs-6' 
+                            : 'bi bi-circle text-secondary fs-6';
+                    }
+                    
+                    // Attach click handler only if not locked
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        if (!link.classList.contains('locked')) {
+                            switchLesson(lId);
+                        }
+                    };
+                }
+            }
+            
+            // Setup "Mark Complete" Buttons
+            document.querySelectorAll('.markCompleteBtn').forEach(btn => {
+                const lId = btn.getAttribute('data-lesson-id');
+                
+                // If already completed on init
+                if (state.completedLessonIds.includes(lId)) {
+                    btn.classList.remove('nav-btn-success');
+                    btn.classList.add('nav-btn-completed');
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i><span class="btn-text">Completed ✓</span>';
+                    btn.disabled = true;
+                }
+                
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (this.disabled || btn.classList.contains('nav-btn-completed')) return;
+                    
+                    // 1. Show Processing
                     this.disabled = true;
                     this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
                     
-                    fetch(`/student/enrollments/${courseId}/complete-lesson/${lessonId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
+                    // 2. Simulate 1-second Backend Call
+                    setTimeout(() => {
+                        // Mark as completed
+                        if (!state.completedLessonIds.includes(lId)) {
+                            state.completedLessonIds.push(lId);
                         }
-                    })
-                    .then(response => response.json().catch(() => ({success: true}))) // fallback if not json
-                    .then(data => {
-                        if (!data.success) {
-                            throw new Error(data.message || 'Server returned failure status.');
-                        }
-                        // 1. Show Toast
+                        saveState();
+                        
+                        // Show Toast
                         const toastEl = document.getElementById('successToast');
                         const toast = new bootstrap.Toast(toastEl);
                         toast.show();
                         
-                        // 2. Update Button State
-                        markCompleteBtn.setAttribute('data-is-completed', 'true');
-                        markCompleteBtn.className = 'nav-btn px-4 nav-btn-completed';
-                        markCompleteBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i><span class="btn-text">Completed</span>';
+                        // Update Button Visuals
+                        this.classList.remove('nav-btn-success');
+                        this.classList.add('nav-btn-completed');
+                        this.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i><span class="btn-text">Completed ✓</span>';
                         
-                        // 3. Update Sidebar Icon for Current Lesson
-                        const currentIcon = document.getElementById('icon-' + lessonId);
-                        if (currentIcon) {
-                            currentIcon.className = 'bi bi-check-circle-fill text-success fs-6';
+                        updateUIMetrics();
+                        refreshSidebar();
+                        
+                        // Check if 100% completed
+                        if (state.progressPercentage === 100) {
+                            document.querySelectorAll('.lesson-container').forEach(el => el.style.display = 'none');
+                            const cs = document.getElementById('completionScreen');
+                            cs.style.display = 'block';
+                            document.getElementById('final-completed-count').innerText = state.completedLessonsCount;
+                            
+                            const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            document.getElementById('completion-date-text').innerText = today;
+                        } else {
+                            // If not 100%, unlock next lesson and update buttons
+                            switchLesson(lId); // Re-run switch to update Next buttons
                         }
                         
-                        // 4. Unlock Next Lesson in Sidebar
-                        if (nextLessonId && nextLessonId !== 'null') {
-                            const nextLink = document.getElementById('lesson-link-' + nextLessonId);
-                            if (nextLink) {
-                                nextLink.classList.remove('locked');
-                                nextLink.setAttribute('href', `/courses/${courseId}/learn?lessonId=${nextLessonId}`);
-                                nextLink.setAttribute('title', '');
-                            }
-                            const nextIcon = document.getElementById('icon-' + nextLessonId);
-                            if (nextIcon && nextIcon.classList.contains('bi-lock-fill')) {
-                                nextIcon.className = 'bi bi-circle text-secondary fs-6';
-                            }
-                            // Enable Bottom Next Button
-                            const bottomNextBtn = document.getElementById('bottomNextBtn');
-                            if(bottomNextBtn) bottomNextBtn.classList.remove('disabled');
-                        }
-                        
-                        // 5. Update Progress Bar
-                        completedLessons++;
-                        let newPercentage = Math.round((completedLessons / totalLessons) * 100);
-                        if (newPercentage > 100) newPercentage = 100;
-                        
-                        const pBar = document.getElementById('progress-bar');
-                        const pText = document.getElementById('progress-text');
-                        if (pBar) pBar.style.width = newPercentage + '%';
-                        if (pText) pText.innerText = newPercentage + '%';
-                        
-                        const countTextSpan = document.querySelector('#completed-count-text span:first-child');
-                        if (countTextSpan) countTextSpan.innerText = completedLessons;
-                        
-                        // 6. Handle 100% Completion dynamically
-                        if (newPercentage === 100 || (data && data.courseJustCompleted)) {
-                            setTimeout(() => {
-                                document.getElementById('lessonContentArea').style.display = 'none';
-                                const cs = document.getElementById('completionScreen');
-                                cs.style.display = 'block';
-                                document.getElementById('final-completed-count').innerText = completedLessons;
-                            }, 800);
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error marking complete:', err);
-                        this.disabled = false;
-                        this.innerHTML = '<i class="bi bi-check-circle me-2"></i><span class="btn-text">Mark Lesson Complete</span>';
-                        alert('An error occurred. Please try again.');
-                    });
+                    }, 1000);
                 });
-            }
+            });
+
+            // Initialize Page State
+            saveState();
+            updateUIMetrics();
+            refreshSidebar();
+            
+            // Show completion screen immediately if already 100% and they land here?
+            // Actually, if they are 100%, switchLesson will just show the last accessed lesson. 
+            // We'll let them view the lesson natively.
+            switchLesson(state.lastAccessedLessonId);
         });
     </script>
 </th:block>

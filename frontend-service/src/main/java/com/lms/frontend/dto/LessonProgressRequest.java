@@ -9,4 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LessonProgressRequest {
     private boolean completed;
+    private Integer watchTimeMinutes;
+    private Integer lastPositionSeconds;
 }

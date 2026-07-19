@@ -17,11 +17,14 @@
         
         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" th:if="${not #lists.isEmpty(myCourses)}">
             <div th:each="myCourse : ${myCourses}" class="col">
-                <div class="card h-100 shadow-sm border-0 hover-shadow transition-all">
+                <div class="card h-100 shadow-sm border-0 hover-shadow transition-all course-card" th:attr="data-course-id=${myCourse.course.id}">
                     <div class="position-relative">
                         <img th:if="${myCourse.course.thumbnailUrl != null}" th:src="${myCourse.course.thumbnailUrl}" class="card-img-top" alt="Course Thumbnail" style="height: 180px; object-fit: cover;">
                         <img th:unless="${myCourse.course.thumbnailUrl != null}" src="https://via.placeholder.com/300x180?text=No+Thumbnail" class="card-img-top" alt="Course Thumbnail">
-                        <span th:if="${myCourse.enrollment.progressPercentage == 100}" class="position-absolute top-0 end-0 m-2 badge bg-success shadow-sm rounded-pill px-3 py-2">
+                        <span th:if="${myCourse.enrollment.progressPercentage == 100}" class="position-absolute top-0 end-0 m-2 badge bg-success shadow-sm rounded-pill px-3 py-2 completion-badge">
+                            <i class="bi bi-trophy-fill me-1"></i> Completed
+                        </span>
+                        <span th:unless="${myCourse.enrollment.progressPercentage == 100}" class="position-absolute top-0 end-0 m-2 badge bg-success shadow-sm rounded-pill px-3 py-2 completion-badge" style="display:none;">
                             <i class="bi bi-trophy-fill me-1"></i> Completed
                         </span>
                     </div>
@@ -31,17 +34,18 @@
                         
                         <div class="mt-auto pt-3 border-top border-light">
                             <div class="d-flex justify-content-between text-muted small fw-bold mb-2">
-                                <span class="text-primary"><span th:text="${myCourse.enrollment.progressPercentage}">0</span>% Complete</span>
-                                <span><span th:text="${myCourse.enrollment.completedLessons}">0</span>/<span th:text="${myCourse.enrollment.totalLessons}">10</span> Lessons</span>
+                                <span class="text-primary"><span class="progress-percentage-text" th:text="${myCourse.enrollment.progressPercentage}">0</span>% Complete</span>
+                                <span><span class="completed-lessons-text" th:text="${myCourse.enrollment.completedLessons}">0</span>/<span th:text="${myCourse.enrollment.totalLessons}">10</span> Lessons</span>
                             </div>
                             <div class="progress mb-4" style="height: 8px;">
-                                <div class="progress-bar bg-primary rounded-pill" role="progressbar" th:style="'width: ' + ${myCourse.enrollment.progressPercentage} + '%'" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar bg-primary rounded-pill" role="progressbar" th:style="'width: ' + ${myCourse.enrollment.progressPercentage} + '%'"></div>
                             </div>
                             
-                            <a th:href="@{/courses/{id}/learn(id=${myCourse.course.id})}" class="btn w-100 fw-bold" 
-                               th:classappend="${myCourse.enrollment.progressPercentage == 100 ? 'btn-outline-success' : 'btn-primary'}">
+                            <a th:href="@{/courses/{id}/learn(id=${myCourse.course.id})}" class="btn w-100 fw-bold continue-btn" 
+                               th:classappend="${myCourse.enrollment.progressPercentage == 100 ? 'btn-outline-success' : 'btn-primary'}"
+                               th:attr="data-base-url=@{/courses/{id}/learn(id=${myCourse.course.id})}">
                                 <i class="bi" th:classappend="${myCourse.enrollment.progressPercentage == 100 ? 'bi-arrow-repeat' : 'bi-play-fill'}"></i>
-                                <span th:text="${myCourse.enrollment.progressPercentage == 100 ? 'Review Course' : 'Continue Learning'}">Continue Learning</span>
+                                <span class="continue-text" th:text="${myCourse.enrollment.progressPercentage == 100 ? 'Review Course' : 'Continue Learning'}">Continue Learning</span>
                             </a>
                         </div>
                     </div>
@@ -61,5 +65,62 @@
             </div>
         </div>
     </main>
+
+    <th:block layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const cards = document.querySelectorAll('.course-card');
+                
+                cards.forEach(card => {
+                    const courseId = card.getAttribute('data-course-id');
+                    const storageKey = 'course-progress-' + courseId;
+                    const savedData = localStorage.getItem(storageKey);
+                    
+                    if (savedData) {
+                        try {
+                            const state = JSON.parse(savedData);
+                            
+                            // Elements to update
+                            const progressPercentageText = card.querySelector('.progress-percentage-text');
+                            const completedLessonsText = card.querySelector('.completed-lessons-text');
+                            const progressBar = card.querySelector('.progress-bar');
+                            const continueBtn = card.querySelector('.continue-btn');
+                            const continueText = card.querySelector('.continue-text');
+                            const btnIcon = continueBtn.querySelector('.bi');
+                            const completionBadge = card.querySelector('.completion-badge');
+                            
+                            // Apply state
+                            if (progressPercentageText) progressPercentageText.innerText = state.progressPercentage;
+                            if (completedLessonsText) completedLessonsText.innerText = state.completedLessonsCount;
+                            if (progressBar) progressBar.style.width = state.progressPercentage + '%';
+                            
+                            // Update href to directly point to the lesson stored
+                            const baseUrl = continueBtn.getAttribute('data-base-url');
+                            if (state.lastAccessedLessonId) {
+                                continueBtn.href = baseUrl + '?lessonId=' + state.lastAccessedLessonId;
+                            }
+                            
+                            // Completion visuals
+                            if (state.progressPercentage === 100) {
+                                continueBtn.classList.remove('btn-primary');
+                                continueBtn.classList.add('btn-outline-success');
+                                btnIcon.className = 'bi bi-arrow-repeat';
+                                continueText.innerText = 'Review Course';
+                                if (completionBadge) completionBadge.style.display = 'inline-block';
+                            } else {
+                                continueBtn.classList.remove('btn-outline-success');
+                                continueBtn.classList.add('btn-primary');
+                                btnIcon.className = 'bi bi-play-fill';
+                                continueText.innerText = 'Continue Learning';
+                                if (completionBadge) completionBadge.style.display = 'none';
+                            }
+                        } catch(e) {
+                            console.error('Error parsing course progress', e);
+                        }
+                    }
+                });
+            });
+        </script>
+    </th:block>
 </body>
 </html>
