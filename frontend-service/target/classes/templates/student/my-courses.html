@@ -17,7 +17,7 @@
         
         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" th:if="${not #lists.isEmpty(myCourses)}">
             <div th:each="myCourse : ${myCourses}" class="col">
-                <div class="card h-100 shadow-sm border-0 hover-shadow transition-all course-card" th:attr="data-course-id=${myCourse.course.id}">
+                <div class="card h-100 shadow-sm border-0 hover-shadow transition-all course-card" th:attr="data-course-id=${myCourse.course.id}" data-sync="course-card">
                     <div class="position-relative">
                         <img th:if="${myCourse.course.thumbnailUrl != null}" th:src="${myCourse.course.thumbnailUrl}" class="card-img-top" alt="Course Thumbnail" style="height: 180px; object-fit: cover;">
                         <img th:unless="${myCourse.course.thumbnailUrl != null}" src="https://via.placeholder.com/300x180?text=No+Thumbnail" class="card-img-top" alt="Course Thumbnail">
@@ -65,62 +65,5 @@
             </div>
         </div>
     </main>
-
-    <th:block layout:fragment="scripts">
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const cards = document.querySelectorAll('.course-card');
-                
-                cards.forEach(card => {
-                    const courseId = card.getAttribute('data-course-id');
-                    const storageKey = 'course-progress-' + courseId;
-                    const savedData = localStorage.getItem(storageKey);
-                    
-                    if (savedData) {
-                        try {
-                            const state = JSON.parse(savedData);
-                            
-                            // Elements to update
-                            const progressPercentageText = card.querySelector('.progress-percentage-text');
-                            const completedLessonsText = card.querySelector('.completed-lessons-text');
-                            const progressBar = card.querySelector('.progress-bar');
-                            const continueBtn = card.querySelector('.continue-btn');
-                            const continueText = card.querySelector('.continue-text');
-                            const btnIcon = continueBtn.querySelector('.bi');
-                            const completionBadge = card.querySelector('.completion-badge');
-                            
-                            // Apply state
-                            if (progressPercentageText) progressPercentageText.innerText = state.progressPercentage;
-                            if (completedLessonsText) completedLessonsText.innerText = state.completedLessonsCount;
-                            if (progressBar) progressBar.style.width = state.progressPercentage + '%';
-                            
-                            // Update href to directly point to the lesson stored
-                            const baseUrl = continueBtn.getAttribute('data-base-url');
-                            if (state.lastAccessedLessonId) {
-                                continueBtn.href = baseUrl + '?lessonId=' + state.lastAccessedLessonId;
-                            }
-                            
-                            // Completion visuals
-                            if (state.progressPercentage === 100) {
-                                continueBtn.classList.remove('btn-primary');
-                                continueBtn.classList.add('btn-outline-success');
-                                btnIcon.className = 'bi bi-arrow-repeat';
-                                continueText.innerText = 'Review Course';
-                                if (completionBadge) completionBadge.style.display = 'inline-block';
-                            } else {
-                                continueBtn.classList.remove('btn-outline-success');
-                                continueBtn.classList.add('btn-primary');
-                                btnIcon.className = 'bi bi-play-fill';
-                                continueText.innerText = 'Continue Learning';
-                                if (completionBadge) completionBadge.style.display = 'none';
-                            }
-                        } catch(e) {
-                            console.error('Error parsing course progress', e);
-                        }
-                    }
-                });
-            });
-        </script>
-    </th:block>
 </body>
 </html>

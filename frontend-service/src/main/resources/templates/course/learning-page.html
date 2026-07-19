@@ -290,20 +290,13 @@
             /*]]>*/
             const orderedLessonIds = allLessons.map(l => l.id.toString());
             const totalLessons = orderedLessonIds.length;
-            
-            // Default State
-            let state = {
+            let state = ProgressManager.loadProgress(courseId) || {
                 completedLessonIds: [],
-                lastAccessedLessonId: orderedLessonIds.length > 0 ? orderedLessonIds[0] : null,
+                lastAccessedLessonId: null,
                 progressPercentage: 0,
-                completedLessonsCount: 0
+                completedLessons: 0,
+                totalLessons: totalLessons
             };
-            
-            // Load from localStorage
-            const savedState = localStorage.getItem(storageKey);
-            if (savedState) {
-                state = JSON.parse(savedState);
-            }
             
             // Ensure first lesson is always in the state if nothing saved
             if (!state.lastAccessedLessonId && orderedLessonIds.length > 0) {
@@ -319,16 +312,16 @@
             
             // Utility: Save State
             function saveState() {
-                state.completedLessonsCount = state.completedLessonIds.length;
-                state.progressPercentage = totalLessons > 0 ? Math.round((state.completedLessonsCount / totalLessons) * 100) : 0;
-                localStorage.setItem(storageKey, JSON.stringify(state));
+                state.completedLessons = state.completedLessonIds.length;
+                state.totalLessons = totalLessons;
+                state = ProgressManager.saveProgress(courseId, state);
             }
             
             // Utility: Update UI Metrics
             function updateUIMetrics() {
                 if (progressBar) progressBar.style.width = state.progressPercentage + '%';
                 if (progressText) progressText.innerText = state.progressPercentage + '%';
-                if (countTextSpan) countTextSpan.innerText = state.completedLessonsCount;
+                if (countTextSpan) countTextSpan.innerText = state.completedLessons;
             }
             
             // Utility: Switch Lesson
@@ -500,7 +493,7 @@
                             document.querySelectorAll('.lesson-container').forEach(el => el.style.display = 'none');
                             const cs = document.getElementById('completionScreen');
                             cs.style.display = 'block';
-                            document.getElementById('final-completed-count').innerText = state.completedLessonsCount;
+                            document.getElementById('final-completed-count').innerText = state.completedLessons;
                             
                             const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                             document.getElementById('completion-date-text').innerText = today;
