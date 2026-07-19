@@ -93,8 +93,9 @@ public class ProfileController {
         } catch (Exception e) {
             log.error("Error updating profile", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Service unavailable.");
+            return "redirect:/profile/settings";
         }
-        return "redirect:/profile/settings";
+        return "redirect:/student/dashboard";
     }
     
     private String extractErrorMessage(FeignException e, String defaultMessage) {

@@ -15,7 +15,7 @@
         <!-- Profile Completion Alert -->
         <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert" th:if="${completionPercentage != null and completionPercentage < 100}">
             <strong><i class="bi bi-exclamation-triangle-fill"></i> Profile Incomplete!</strong> 
-            Your profile is currently <span th:text="${completionPercentage} + '%'"></span> complete. Please <a th:href="@{/settings/profile}" class="alert-link">update your profile</a> to unlock all features.
+            Your profile is currently <span th:text="${completionPercentage} + '%'"></span> complete. Please <a th:href="@{/profile/settings}" class="alert-link">update your profile</a> to unlock all features.
             <div class="progress mt-2" style="height: 10px;">
                 <div class="progress-bar bg-warning" role="progressbar" th:style="'width: ' + ${completionPercentage} + '%'" th:attr="aria-valuenow=${completionPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
             </div>

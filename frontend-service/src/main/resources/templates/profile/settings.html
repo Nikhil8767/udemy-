@@ -6,109 +6,251 @@
 <body>
     <main layout:fragment="content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Profile Settings</h1>
+            <h1 class="h2 fw-bold text-primary">Profile Settings</h1>
+            <a href="/profile" class="btn btn-outline-secondary btn-sm"><i class="bi bi-person me-1"></i> View Profile</a>
         </div>
         
         <div th:replace="~{fragments/alerts :: alerts}"></div>
         
-        <div class="card shadow-sm border-0" th:if="${profile != null}">
-            <div class="card-body p-4">
-                <form th:action="@{/profile/settings}" method="post" th:object="${profile}">
-                    <h5 class="mb-3 border-bottom pb-2">Basic Information</h5>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">First Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="firstName" th:value="${profile.firstName}" required>
+        <div class="row mb-4" th:if="${profile != null}">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">Profile Completeness</h5>
+                            <span class="fw-bold text-primary" th:text="${profile.completionPercentage != null ? profile.completionPercentage : 0} + '%'">0%</span>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="lastName" th:value="${profile.lastName}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Display Name (Public) <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="displayName" th:value="${profile.displayName}" required placeholder="e.g. Jane Doe">
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 th:style="'width: ' + ${profile.completionPercentage != null ? profile.completionPercentage : 0} + '%'" 
+                                 th:attr="aria-valuenow=${profile.completionPercentage != null ? profile.completionPercentage : 0}" 
+                                 aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Phone Number <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="phoneNumber" th:value="${profile.phoneNumber}" required placeholder="+1234567890">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Email (Read-Only)</label>
-                            <input type="email" class="form-control bg-light" th:value="${#authentication.name}" disabled>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Profile Image URL <span class="text-danger">*</span></label>
-                            <input type="url" class="form-control" name="profileImageUrl" th:value="${profile.profileImageUrl}" required placeholder="https://example.com/photo.jpg">
-                        </div>
-                    </div>
-
-                    <h5 class="mb-3 mt-4 border-bottom pb-2">Professional Details</h5>
-                    <div class="mb-3">
-                        <label class="form-label">Headline (Bio) <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="bio" th:value="${profile.bio}" required placeholder="e.g. Senior Java Instructor">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Detailed About <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="about" rows="4" th:text="${profile.about}" required placeholder="Write a detailed description about your experience..."></textarea>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Qualifications <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="qualifications" rows="2" th:text="${profile.qualifications}" required placeholder="Degrees, Certifications, etc."></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Teaching Experience <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="teachingExperience" rows="2" th:text="${profile.teachingExperience}" required placeholder="How long have you been teaching?"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Skills <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="skills" th:value="${profile.skills}" required placeholder="e.g. Java, Python, Spring Boot">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Preferred Language <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="preferredLanguage" th:value="${profile.preferredLanguage}" required placeholder="e.g. English">
-                        </div>
-                    </div>
-
-                    <h5 class="mb-3 mt-4 border-bottom pb-2">Location & Social</h5>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Country <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="country" th:value="${profile.country}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">State/Province <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="state" th:value="${profile.state}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">City <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="city" th:value="${profile.city}" required>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label">LinkedIn URL <span class="text-danger">*</span></label>
-                            <input type="url" class="form-control" name="linkedinUrl" th:value="${profile.linkedinUrl}" required placeholder="https://linkedin.com/in/you">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Portfolio Website <span class="text-danger">*</span></label>
-                            <input type="url" class="form-control" name="websiteUrl" th:value="${profile.websiteUrl}" required placeholder="https://yourwebsite.com">
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary px-4 py-2">Save Profile</button>
-                    <a href="/profile" class="btn btn-outline-secondary ms-2 py-2">Cancel</a>
-                </form>
+                </div>
             </div>
         </div>
+        
+        <form id="profileForm" th:action="@{/profile/settings}" method="post" th:object="${profile}" class="needs-validation" novalidate>
+            <div class="row" th:if="${profile != null}">
+                
+                <!-- Left Column -->
+                <div class="col-md-4 mb-4">
+                    <!-- Profile Picture Card -->
+                    <div class="card shadow-sm border-0 mb-4 text-center py-4">
+                        <div class="card-body">
+                            <img id="avatarPreview" th:src="${profile.profileImageUrl != null and !profile.profileImageUrl.isEmpty() ? profile.profileImageUrl : 'https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff'}" class="rounded-circle mx-auto mb-3 shadow-sm border" alt="Profile Preview" style="width: 120px; height: 120px; object-fit: cover;">
+                            
+                            <div class="mb-3 text-start">
+                                <label class="form-label text-muted small fw-bold">Profile Image URL</label>
+                                <input type="url" class="form-control" name="profileImageUrl" id="profileImageUrl" th:value="${profile.profileImageUrl != null ? profile.profileImageUrl : ''}" placeholder="https://example.com/photo.jpg">
+                                <div class="invalid-feedback">Please provide a valid URL.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Card -->
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="mb-0 fw-bold">Location Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Country <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="country" th:value="${profile.country != null ? profile.country : ''}" placeholder="Enter your country" required>
+                                <div class="invalid-feedback">Country is required.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">State/Province <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="state" th:value="${profile.state != null ? profile.state : ''}" placeholder="Enter your state" required>
+                                <div class="invalid-feedback">State is required.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">City <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="city" th:value="${profile.city != null ? profile.city : ''}" placeholder="Enter your city" required>
+                                <div class="invalid-feedback">City is required.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-8">
+                    
+                    <!-- Personal Information -->
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold">Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="firstName" th:value="${profile.firstName != null ? profile.firstName : ''}" placeholder="Enter your first name" required>
+                                    <div class="invalid-feedback">First name is required.</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="lastName" th:value="${profile.lastName != null ? profile.lastName : ''}" placeholder="Enter your last name" required>
+                                    <div class="invalid-feedback">Last name is required.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Display Name (Public) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="displayName" th:value="${profile.displayName != null ? profile.displayName : ''}" placeholder="e.g. Jane Doe" required>
+                                    <div class="invalid-feedback">Display name is required.</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Email (Read-Only)</label>
+                                    <input type="email" class="form-control bg-light" th:value="${#authentication.name}" disabled>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="phoneNumber" th:value="${profile.phoneNumber != null ? profile.phoneNumber : ''}" placeholder="+1234567890" required>
+                                    <div class="invalid-feedback">Phone number is required.</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Preferred Language <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="preferredLanguage" th:value="${profile.preferredLanguage != null ? profile.preferredLanguage : ''}" placeholder="e.g. English" required>
+                                    <div class="invalid-feedback">Preferred language is required.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Date of Birth</label>
+                                    <input type="date" class="form-control" name="dateOfBirth" th:value="${profile.dateOfBirth != null ? profile.dateOfBirth : ''}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Gender</label>
+                                    <select class="form-select" name="gender">
+                                        <option value="" th:selected="${profile.gender == null or profile.gender.isEmpty()}">Select Gender</option>
+                                        <option value="Male" th:selected="${profile.gender == 'Male'}">Male</option>
+                                        <option value="Female" th:selected="${profile.gender == 'Female'}">Female</option>
+                                        <option value="Other" th:selected="${profile.gender == 'Other'}">Other</option>
+                                        <option value="Prefer not to say" th:selected="${profile.gender == 'Prefer not to say'}">Prefer not to say</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional & About Me -->
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold">Professional Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Headline (Bio)</label>
+                                <input type="text" class="form-control" name="bio" th:value="${profile.bio != null ? profile.bio : ''}" placeholder="e.g. Senior Java Instructor">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Detailed About Me</label>
+                                <textarea class="form-control" name="about" rows="4" th:text="${profile.about != null ? profile.about : ''}" placeholder="Tell us about yourself..."></textarea>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Skills</label>
+                                    <input type="text" class="form-control" name="skills" th:value="${profile.skills != null ? profile.skills : ''}" placeholder="e.g. Java, Python, Spring Boot">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Qualifications</label>
+                                    <input type="text" class="form-control" name="qualifications" th:value="${profile.qualifications != null ? profile.qualifications : ''}" placeholder="Degrees, Certifications, etc.">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">Teaching Experience (For Tutors)</label>
+                                <textarea class="form-control" name="teachingExperience" rows="2" th:text="${profile.teachingExperience != null ? profile.teachingExperience : ''}" placeholder="How long have you been teaching?"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold">Social Links</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">LinkedIn URL</label>
+                                    <input type="url" class="form-control" name="linkedinUrl" th:value="${profile.linkedinUrl != null ? profile.linkedinUrl : ''}" placeholder="https://linkedin.com/in/you">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small fw-bold">Portfolio Website</label>
+                                    <input type="url" class="form-control" name="websiteUrl" th:value="${profile.websiteUrl != null ? profile.websiteUrl : ''}" placeholder="https://yourwebsite.com">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-3 mb-5">
+                        <a href="/profile" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                        <button type="submit" id="saveProfileBtn" class="btn btn-primary px-5 py-2 fw-bold">
+                            <span class="btn-text">Save Profile</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </form>
     </main>
+
+    <th:block layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Image Preview Logic
+                const imageUrlInput = document.getElementById('profileImageUrl');
+                const avatarPreview = document.getElementById('avatarPreview');
+                const defaultAvatar = 'https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff';
+                
+                if (imageUrlInput && avatarPreview) {
+                    imageUrlInput.addEventListener('input', function() {
+                        const url = this.value.trim();
+                        if (url) {
+                            avatarPreview.src = url;
+                            avatarPreview.onerror = function() {
+                                avatarPreview.src = defaultAvatar;
+                            };
+                        } else {
+                            avatarPreview.src = defaultAvatar;
+                        }
+                    });
+                }
+                
+                // Form Validation & Submit Intercept
+                const form = document.getElementById('profileForm');
+                const submitBtn = document.getElementById('saveProfileBtn');
+                
+                if (form && submitBtn) {
+                    form.addEventListener('submit', function(event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            form.classList.add('was-validated');
+                            
+                            // Scroll to first error
+                            const firstError = form.querySelector(':invalid');
+                            if (firstError) {
+                                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                            return;
+                        }
+                        
+                        // Show Spinner
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...';
+                    }, false);
+                }
+            });
+        </script>
+    </th:block>
 </body>
 </html>
