@@ -20,7 +20,7 @@
         <!-- Profile Completion Alert -->
         <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert" th:if="${completionPercentage != null and completionPercentage < 100}">
             <strong><i class="bi bi-exclamation-triangle-fill"></i> Profile Incomplete!</strong> 
-            Your tutor profile is currently <span th:text="${completionPercentage} + '%'"></span> complete. Please <a th:href="@{/settings/profile}" class="alert-link">update your profile</a> to attract more students.
+            Your tutor profile is currently <span th:text="${completionPercentage} + '%'"></span> complete. Please <a th:href="@{/profile/settings}" class="alert-link">update your profile</a> to attract more students.
             <div class="progress mt-2" style="height: 10px;">
                 <div class="progress-bar bg-warning" role="progressbar" th:style="'width: ' + ${completionPercentage} + '%'" th:attr="aria-valuenow=${completionPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
@@ -154,7 +154,7 @@
                                     <small class="text-muted">Edit, publish, or delete courses</small>
                                 </div>
                             </a>
-                            <a th:href="@{/settings/profile}" class="list-group-item list-group-item-action d-flex align-items-center p-4 border-bottom border-light">
+                            <a th:href="@{/profile/settings}" class="list-group-item list-group-item-action d-flex align-items-center p-4 border-bottom border-light">
                                 <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                     <i class="bi bi-person fs-5"></i>
                                 </div>

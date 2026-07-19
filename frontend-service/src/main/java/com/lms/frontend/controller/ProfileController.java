@@ -67,10 +67,21 @@ public class ProfileController {
     public String updateProfile(@Valid @ModelAttribute("profile") ProfileRequest profileRequest,
                                BindingResult result,
                                RedirectAttributes redirectAttributes,
-                               HttpServletRequest request) {
+                               HttpServletRequest request,
+                               org.springframework.security.core.Authentication authentication) {
         if (result.hasErrors()) {
             return "profile/settings";
         }
+        
+        String redirectUrl = "redirect:/student/dashboard";
+        if (authentication != null) {
+            if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                redirectUrl = "redirect:/admin/dashboard";
+            } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_TUTOR"))) {
+                redirectUrl = "redirect:/tutor/dashboard";
+            }
+        }
+        
         try {
             ApiResponse<Void> response = userServiceClient.updateMyProfile(profileRequest);
             if (response != null && response.isSuccess()) {
@@ -95,7 +106,7 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("errorMessage", "Service unavailable.");
             return "redirect:/profile/settings";
         }
-        return "redirect:/student/dashboard";
+        return redirectUrl;
     }
     
     private String extractErrorMessage(FeignException e, String defaultMessage) {
