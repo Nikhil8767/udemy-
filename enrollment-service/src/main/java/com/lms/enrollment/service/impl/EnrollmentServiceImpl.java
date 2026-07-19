@@ -128,12 +128,16 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public boolean markLessonCompleted(String courseId, String lessonId, String userId, String role, LessonProgressRequest request) {
         verifyStudentRole(role);
         
+        // 1. Find Enrollment
         Enrollment enrollment = enrollmentRepository.findByStudentIdAndCourseId(UUID.fromString(userId), UUID.fromString(courseId))
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found."));
 
         if (enrollment.getStatus() == EnrollmentStatus.DROPPED) {
             throw new BusinessException("Validation failed. Cannot update a dropped course.");
         }
+
+        // Add debug logs (Before update)
+        System.out.println("DEBUG Before Update - Enrollment ID: " + enrollment.getId() + ", Completed Lessons: " + enrollment.getCompletedLessons() + ", Progress: " + enrollment.getProgressPercentage() + "%");
 
         try {
             ApiResponse<LessonResponse> lesson = contentServiceClient.getLesson(lessonId);
@@ -144,44 +148,75 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw new ResourceNotFoundException("Lesson not found.");
         }
 
+        // 2 & 3. Find or Create LessonProgress
         LessonProgress progress = lessonProgressRepository.findByEnrollmentIdAndLessonId(enrollment.getId(), UUID.fromString(lessonId))
                 .orElse(LessonProgress.builder()
                         .enrollment(enrollment)
                         .lessonId(UUID.fromString(lessonId))
                         .build());
 
+        // 4. Set completed = true
         if (!progress.isCompleted()) {
             progress.setCompleted(true);
             progress.setCompletedAt(LocalDateTime.now());
-            enrollment.setCompletedLessons(enrollment.getCompletedLessons() + 1);
         }
 
         progress.setWatchTimeMinutes(request.getWatchTimeMinutes());
         progress.setLastPositionSeconds(request.getLastPositionSeconds());
 
-        lessonProgressRepository.save(progress);
+        // 5. Persist LessonProgress
+        progress = lessonProgressRepository.save(progress);
+        System.out.println("DEBUG LessonProgress saved for lesson: " + lessonId);
 
+        // 6. Add to enrollment collection to keep session updated
+        if (!enrollment.getLessonProgresses().contains(progress)) {
+            enrollment.getLessonProgresses().add(progress);
+        }
+
+        // 7. Recalculate completedLessons
+        int completedLessonsCount = (int) enrollment.getLessonProgresses().stream()
+                .filter(LessonProgress::isCompleted)
+                .count();
+        enrollment.setCompletedLessons(completedLessonsCount);
+
+        // 8. Recalculate totalLessons
+        int currentTotalLessons = calculateTotalLessons(courseId);
+        if (currentTotalLessons > 0) {
+            enrollment.setTotalLessons(currentTotalLessons);
+        }
+
+        // 9. Recalculate progressPercentage
+        int percentage = 0;
+        if (enrollment.getTotalLessons() > 0) {
+            percentage = (int) (((double) completedLessonsCount / enrollment.getTotalLessons()) * 100);
+            if (percentage > 100) percentage = 100;
+        }
+        enrollment.setProgressPercentage(percentage);
+
+        // 10 & 11. Update lastAccessedLessonId and lastActivity
         enrollment.setLastAccessedLessonId(UUID.fromString(lessonId));
         enrollment.setLastAccessedAt(LocalDateTime.now());
-        enrollment.setStatus(EnrollmentStatus.IN_PROGRESS);
 
+        // 12. Set COMPLETED if 100%
         boolean courseJustCompleted = false;
-
-        if (enrollment.getTotalLessons() > 0) {
-            int percentage = (int) (((double) enrollment.getCompletedLessons() / enrollment.getTotalLessons()) * 100);
-            if (percentage > 100) percentage = 100;
-            enrollment.setProgressPercentage(percentage);
-            
-            if (percentage == 100 && enrollment.getCompletedAt() == null) {
+        if (percentage == 100 && currentTotalLessons > 0) {
+            if (enrollment.getStatus() != EnrollmentStatus.COMPLETED) {
                 enrollment.setStatus(EnrollmentStatus.COMPLETED);
                 enrollment.setCompletedAt(LocalDateTime.now());
                 courseJustCompleted = true;
-            } else if (percentage == 100) {
-                courseJustCompleted = true;
             }
+        } else {
+            enrollment.setStatus(EnrollmentStatus.IN_PROGRESS);
+            enrollment.setCompletedAt(null);
         }
 
+        // 13. Save Enrollment
         enrollmentRepository.save(enrollment);
+        
+        // Add debug logs (After update)
+        System.out.println("DEBUG After Update - Completed Lessons: " + enrollment.getCompletedLessons() + ", Progress: " + enrollment.getProgressPercentage() + "%");
+        System.out.println("DEBUG Enrollment saved, transaction committed implicitly.");
+
         return courseJustCompleted;
     }
 

@@ -94,23 +94,32 @@ public class StudentController {
     }
 
     @PostMapping("/enrollments/{courseId}/complete-lesson/{lessonId}")
-    public String markLessonCompleted(
+    @org.springframework.web.bind.annotation.ResponseBody
+    public org.springframework.http.ResponseEntity<?> markLessonCompletedAjax(
             @PathVariable String courseId,
-            @PathVariable String lessonId,
-            RedirectAttributes redirectAttributes) {
+            @PathVariable String lessonId) {
         try {
             LessonProgressRequest request = new LessonProgressRequest(true);
             ApiResponse<Void> response = enrollmentServiceClient.markLessonCompleted(courseId, lessonId, request);
             if (response != null && response.isSuccess()) {
-                redirectAttributes.addFlashAttribute("successMessage", response.getMessage());
+                return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                    "success", true,
+                    "message", response.getMessage() != null ? response.getMessage() : "Lesson marked complete",
+                    "courseJustCompleted", response.getMessage() != null && response.getMessage().contains("Course completed") // This logic might need refinement based on exact backend response, or we just rely on JS logic.
+                ));
             } else {
-                redirectAttributes.addFlashAttribute("errorMessage", "Failed to mark lesson as completed.");
+                return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of(
+                    "success", false,
+                    "message", "Failed to mark lesson as completed."
+                ));
             }
         } catch (Exception e) {
             log.error("Error marking lesson as completed", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Service unavailable.");
+            return org.springframework.http.ResponseEntity.status(500).body(java.util.Map.of(
+                "success", false,
+                "message", "Service unavailable."
+            ));
         }
-        return "redirect:/courses/" + courseId + "/learn?lessonId=" + lessonId;
     }
 
     @GetMapping("/certificates")

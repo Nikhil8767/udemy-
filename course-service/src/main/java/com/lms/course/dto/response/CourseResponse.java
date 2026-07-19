@@ -29,6 +29,7 @@ public class CourseResponse {
     private String currency;
     private Integer estimatedDurationMinutes;
     private UUID instructorId;
+    private String instructorName;
     private LocalDateTime publishedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

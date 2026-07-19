@@ -24,4 +24,6 @@ public class SectionResponse {
     
     // Aggregation field for frontend convenience
     private List<LessonResponse> lessons;
+    private Integer totalDurationMinutes;
+    private Integer lessonCount;
 }

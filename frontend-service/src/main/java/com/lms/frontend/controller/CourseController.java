@@ -121,6 +121,12 @@ public class CourseController {
                             allLessons.add(lesson);
                         }
                         section.setLessons(lessons);
+                        section.setLessonCount(lessons.size());
+                        int duration = 0;
+                        for (LessonResponse l : lessons) {
+                            if (l.getDurationMinutes() != null) duration += l.getDurationMinutes();
+                        }
+                        section.setTotalDurationMinutes(duration);
                     }
                 }
                 

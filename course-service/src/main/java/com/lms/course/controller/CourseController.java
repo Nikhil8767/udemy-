@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class CourseController {
 
     private final CourseService courseService;
+    private final com.lms.course.client.UserServiceClient userServiceClient;
 
     @PostMapping
     @Operation(summary = "Create course")
@@ -109,14 +110,18 @@ public class CourseController {
     @GetMapping("/published")
     @Operation(summary = "Public list of published courses")
     public ResponseEntity<ApiResponse<List<CourseResponse>>> getPublishedCourses() {
-        List<CourseResponse> courses = courseService.getPublishedCourses().stream()
-                .map(this::mapToResponse)
+        List<Course> courses = courseService.getPublishedCourses();
+        java.util.Map<java.util.UUID, String> instructorNameCache = new java.util.HashMap<>();
+        
+        List<CourseResponse> responses = courses.stream()
+                .map(course -> mapToResponseWithCache(course, instructorNameCache))
                 .collect(Collectors.toList());
+                
         return ResponseEntity.ok(
                 ApiResponse.<List<CourseResponse>>builder()
                         .success(true)
                         .message("Courses fetched successfully.")
-                        .data(courses)
+                        .data(responses)
                         .build()
         );
     }
@@ -132,7 +137,7 @@ public class CourseController {
                 ApiResponse.<CourseResponse>builder()
                         .success(true)
                         .message("Course details fetched successfully.")
-                        .data(mapToResponse(course))
+                        .data(mapToResponseWithCache(course, new java.util.HashMap<>()))
                         .build()
         );
     }
@@ -141,14 +146,18 @@ public class CourseController {
     @Operation(summary = "Tutor's own courses")
     public ResponseEntity<ApiResponse<List<CourseResponse>>> getMyCourses(
             @RequestHeader("X-User-Id") String userId) {
-        List<CourseResponse> courses = courseService.getMyCourses(userId).stream()
-                .map(this::mapToResponse)
+        List<Course> courses = courseService.getMyCourses(userId);
+        java.util.Map<java.util.UUID, String> instructorNameCache = new java.util.HashMap<>();
+        
+        List<CourseResponse> responses = courses.stream()
+                .map(course -> mapToResponseWithCache(course, instructorNameCache))
                 .collect(Collectors.toList());
+                
         return ResponseEntity.ok(
                 ApiResponse.<List<CourseResponse>>builder()
                         .success(true)
                         .message("Courses fetched successfully.")
-                        .data(courses)
+                        .data(responses)
                         .build()
         );
     }
@@ -169,7 +178,27 @@ public class CourseController {
         );
     }
 
-    private CourseResponse mapToResponse(Course course) {
+    private CourseResponse mapToResponseWithCache(Course course, java.util.Map<java.util.UUID, String> cache) {
+        String instructorName = "Instructor";
+        if (course.getInstructorId() != null) {
+            if (cache.containsKey(course.getInstructorId())) {
+                instructorName = cache.get(course.getInstructorId());
+            } else {
+                try {
+                    ApiResponse<com.lms.course.dto.response.ProfileResponse> profileRes = userServiceClient.getMyProfile(course.getInstructorId().toString());
+                    if (profileRes != null && profileRes.isSuccess() && profileRes.getData() != null) {
+                        instructorName = profileRes.getData().getDisplayName();
+                        if (instructorName == null || instructorName.trim().isEmpty()) {
+                            instructorName = profileRes.getData().getFirstName() + " " + profileRes.getData().getLastName();
+                        }
+                        cache.put(course.getInstructorId(), instructorName);
+                    }
+                } catch (Exception e) {
+                    cache.put(course.getInstructorId(), "Instructor");
+                }
+            }
+        }
+        
         return CourseResponse.builder()
                 .id(course.getId())
                 .title(course.getTitle())
@@ -188,6 +217,7 @@ public class CourseController {
                 .currency(course.getCurrency())
                 .estimatedDurationMinutes(course.getEstimatedDurationMinutes())
                 .instructorId(course.getInstructorId())
+                .instructorName(instructorName)
                 .publishedAt(course.getPublishedAt())
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
