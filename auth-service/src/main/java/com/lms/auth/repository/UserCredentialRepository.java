@@ -21,4 +21,7 @@ public interface UserCredentialRepository extends JpaRepository<UserCredential, 
 
     @Query("SELECT u.id FROM UserCredential u WHERE (:role IS NULL OR u.role = :role) AND (:status IS NULL OR u.accountStatus = :status)")
     Page<UUID> findIdsByRoleAndStatus(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
+
+    @Query("SELECT u FROM UserCredential u WHERE (:role IS NULL OR u.role = :role) AND (:status IS NULL OR u.accountStatus = :status)")
+    Page<UserCredential> findByRoleAndStatus(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
 }

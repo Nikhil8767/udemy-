@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: frontend-service
+  jmx:
+    enabled: false
   thymeleaf:
     cache: false
     mode: HTML

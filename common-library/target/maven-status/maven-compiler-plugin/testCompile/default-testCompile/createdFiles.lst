@@ -1,9 +1,0 @@
-com\lms\common\validation\PhoneValidatorTest.class
-com\lms\common\dto\response\ApiResponseTest.class
-com\lms\common\constant\AppConstantsTest.class
-com\lms\common\validation\PasswordValidatorTest.class
-com\lms\common\exception\ExceptionsTest.class
-com\lms\common\enums\EnumsTest.class
-com\lms\common\handler\GlobalExceptionHandlerTest.class
-com\lms\common\handler\GlobalExceptionHandlerTest$DummyController.class
-com\lms\common\validation\UrlValidatorTest.class

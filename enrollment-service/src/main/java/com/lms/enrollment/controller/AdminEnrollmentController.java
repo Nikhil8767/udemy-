@@ -20,7 +20,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/api/v1/admin/enrollments")
 @RequiredArgsConstructor
 @Tag(name = "Admin Enrollments", description = "Admin endpoints for enrollment reports")
 public class AdminEnrollmentController {
@@ -66,7 +66,7 @@ public class AdminEnrollmentController {
         private long dropped;
     }
 
-    @GetMapping("/enrollments")
+    @GetMapping
     @Operation(summary = "List all enrollments")
     public ResponseEntity<ApiResponse<AdminPaginatedResponse<AdminEnrollmentResponse>>> listEnrollments(
             @RequestHeader("X-User-Role") String roleHeader,

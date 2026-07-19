@@ -220,6 +220,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     }
                 }
                 
+                java.util.Set<UUID> completedIds = enrollment.getLessonProgresses().stream()
+                        .filter(com.lms.enrollment.entity.LessonProgress::isCompleted)
+                        .map(com.lms.enrollment.entity.LessonProgress::getLessonId)
+                        .collect(java.util.stream.Collectors.toSet());
+
                 return com.lms.enrollment.dto.response.EnrollmentStatusDTO.builder()
                         .enrolled(true)
                         .enrollmentId(enrollment.getId())
@@ -227,6 +232,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                         .lastAccessedLessonId(resumeLessonId)
                         .completedLessons(enrollment.getCompletedLessons())
                         .enrollmentDate(enrollment.getEnrolledAt())
+                        .completedLessonIds(completedIds)
                         .build();
             })
             .orElse(com.lms.enrollment.dto.response.EnrollmentStatusDTO.builder().enrolled(false).build());

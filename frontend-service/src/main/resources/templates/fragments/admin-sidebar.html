@@ -1,0 +1,54 @@
+<div th:fragment="sidebar" class="admin-sidebar d-flex flex-column" xmlns:th="http://www.thymeleaf.org">
+    <div class="p-4 d-flex align-items-center">
+        <div class="bg-primary rounded p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+            <i class="bi bi-mortarboard-fill text-white"></i>
+        </div>
+        <h4 class="mb-0 fw-bold fs-5">LMS Admin</h4>
+    </div>
+    
+    <div class="px-3 pb-2 text-uppercase text-white-50 fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+        Core Management
+    </div>
+    
+    <nav class="nav flex-column mb-auto">
+        <a th:href="@{/admin/dashboard}" class="nav-link" th:classappend="${activeMenu == 'dashboard' ? 'active' : ''}">
+            <i class="bi bi-grid-1x2"></i> Dashboard
+        </a>
+        <a th:href="@{/admin/users}" class="nav-link" th:classappend="${activeMenu == 'users' ? 'active' : ''}">
+            <i class="bi bi-people"></i> User Management
+        </a>
+        <a th:href="@{/admin/courses}" class="nav-link" th:classappend="${activeMenu == 'courses' ? 'active' : ''}">
+            <i class="bi bi-journal-bookmark"></i> Course Management
+        </a>
+        <a th:href="@{/admin/enrollments}" class="nav-link" th:classappend="${activeMenu == 'enrollments' ? 'active' : ''}">
+            <i class="bi bi-mortarboard"></i> Enrollments
+        </a>
+        <a th:href="@{/admin/categories}" class="nav-link" th:classappend="${activeMenu == 'categories' ? 'active' : ''}">
+            <i class="bi bi-tags"></i> Categories
+        </a>
+    </nav>
+
+    <div class="px-3 pt-4 pb-2 text-uppercase text-white-50 fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+        Analytics & System
+    </div>
+    
+    <nav class="nav flex-column mb-4">
+        <a th:href="@{/admin/reports}" class="nav-link" th:classappend="${activeMenu == 'reports' ? 'active' : ''}">
+            <i class="bi bi-file-earmark-bar-graph"></i> Reports
+        </a>
+        <a th:href="@{/admin/analytics}" class="nav-link" th:classappend="${activeMenu == 'analytics' ? 'active' : ''}">
+            <i class="bi bi-graph-up"></i> Analytics
+        </a>
+        <a th:href="@{/admin/settings}" class="nav-link" th:classappend="${activeMenu == 'settings' ? 'active' : ''}">
+            <i class="bi bi-gear"></i> Settings
+        </a>
+    </nav>
+    
+    <div class="mt-auto p-3 border-top border-secondary">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-outline-light w-100 text-start border-0 nav-link">
+                <i class="bi bi-box-arrow-right"></i> Sign Out
+            </button>
+        </form>
+    </div>
+</div>

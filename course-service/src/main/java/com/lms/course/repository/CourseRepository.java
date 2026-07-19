@@ -18,6 +18,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     
     long countByCourseStatus(CourseStatus status);
     long countByIsFeaturedTrue();
+    long countByCategory_Id(UUID categoryId);
 
     @Query("SELECT c FROM Course c WHERE (:status IS NULL OR c.courseStatus = :status) AND (:categoryId IS NULL OR CAST(c.category.id AS string) = CAST(:categoryId AS string)) AND (:instructorId IS NULL OR CAST(c.instructorId AS string) = CAST(:instructorId AS string))")
     Page<Course> searchCourses(@Param("status") CourseStatus status, @Param("categoryId") UUID categoryId, @Param("instructorId") UUID instructorId, Pageable pageable);

@@ -2,12 +2,16 @@ C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\c
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\client\UserServiceClient.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\config\CategoryDataInitializer.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\config\SwaggerConfig.java
+C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\controller\AdminCategoryController.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\controller\AdminCourseController.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\controller\AdminStatisticsController.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\controller\CategoryController.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\controller\CourseController.java
+C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\controller\TutorDashboardController.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\CourseServiceApplication.java
+C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\request\CategoryRequest.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\request\CourseRequest.java
+C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\AdminCategoryResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\CategoryResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\CourseResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\CourseStatisticsResponse.java
@@ -15,6 +19,7 @@ C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\c
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\ProfileResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\ResourceResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\SectionResponse.java
+C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\TutorDashboardResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\ValidationErrorResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\dto\response\ValidationReportResponse.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\entity\Category.java
@@ -26,5 +31,7 @@ C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\c
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\repository\CourseRepository.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\service\CategoryService.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\service\CourseService.java
+C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\service\DashboardService.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\service\impl\CategoryServiceImpl.java
 C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\service\impl\CourseServiceImpl.java
+C:\Users\Hp\Desktop\new journey\final LMS\course-service\src\main\java\com\lms\course\service\impl\DashboardServiceImpl.java

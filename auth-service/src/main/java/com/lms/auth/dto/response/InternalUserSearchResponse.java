@@ -9,6 +9,18 @@ import java.util.UUID;
 @Builder
 public class InternalUserSearchResponse {
     private List<UUID> userIds;
+    private List<AuthUserDto> users;
     private long totalElements;
     private int totalPages;
+
+    @Data
+    @Builder
+    public static class AuthUserDto {
+        private UUID id;
+        private String email;
+        private String role;
+        private String accountStatus;
+        private java.time.LocalDateTime createdAt;
+        private java.time.LocalDateTime lastLoginAt;
+    }
 }

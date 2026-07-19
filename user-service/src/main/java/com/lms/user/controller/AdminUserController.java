@@ -40,6 +40,11 @@ public class AdminUserController {
         private String firstName;
         private String lastName;
         private String profileImageUrl;
+        private String email;
+        private String role;
+        private String accountStatus;
+        private java.time.LocalDateTime createdAt;
+        private java.time.LocalDateTime lastLoginAt;
     }
 
     @Data
@@ -74,13 +79,26 @@ public class AdminUserController {
 
         InternalUserSearchResponse searchResponse = authServiceClient.searchUsers(role, status, page, size);
         
-        List<AdminUserSummaryResponse> content = userProfileRepository.findAllByAuthUserIdIn(searchResponse.getUserIds())
-                .stream().map(profile -> {
+        java.util.List<UUID> userIds = searchResponse.getUsers().stream().map(InternalUserSearchResponse.AuthUserDto::getId).toList();
+        
+        java.util.Map<UUID, UserProfile> profileMap = userProfileRepository.findAllByAuthUserIdIn(userIds)
+                .stream().collect(java.util.stream.Collectors.toMap(UserProfile::getAuthUserId, p -> p));
+
+        List<AdminUserSummaryResponse> content = searchResponse.getUsers().stream().map(authUser -> {
                     AdminUserSummaryResponse dto = new AdminUserSummaryResponse();
-                    dto.setAuthUserId(profile.getAuthUserId());
-                    dto.setFirstName(profile.getFirstName());
-                    dto.setLastName(profile.getLastName());
-                    dto.setProfileImageUrl(profile.getProfileImageUrl());
+                    dto.setAuthUserId(authUser.getId());
+                    dto.setEmail(authUser.getEmail());
+                    dto.setRole(authUser.getRole());
+                    dto.setAccountStatus(authUser.getAccountStatus());
+                    dto.setCreatedAt(authUser.getCreatedAt());
+                    dto.setLastLoginAt(authUser.getLastLoginAt());
+
+                    UserProfile profile = profileMap.get(authUser.getId());
+                    if (profile != null) {
+                        dto.setFirstName(profile.getFirstName());
+                        dto.setLastName(profile.getLastName());
+                        dto.setProfileImageUrl(profile.getProfileImageUrl());
+                    }
                     return dto;
                 }).toList();
 

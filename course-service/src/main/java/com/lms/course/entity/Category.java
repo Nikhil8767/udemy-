@@ -32,6 +32,10 @@ public class Category {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

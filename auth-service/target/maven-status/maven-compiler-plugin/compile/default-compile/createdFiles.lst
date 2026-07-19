@@ -9,6 +9,8 @@ com\lms\auth\security\UserDetailsImpl.class
 com\lms\auth\jwt\JwtAuthFilter.class
 com\lms\auth\controller\InternalStatisticsController$AuthStatistics.class
 com\lms\auth\dto\response\InternalUserSearchResponse$InternalUserSearchResponseBuilder.class
+com\lms\auth\dto\response\InternalUserSearchResponse$AuthUserDto$AuthUserDtoBuilder.class
+com\lms\auth\dto\response\InternalUserSearchResponse$AuthUserDto.class
 com\lms\auth\repository\UserCredentialRepository.class
 com\lms\auth\dto\response\JwtResponse$JwtResponseBuilder.class
 com\lms\auth\AuthServiceApplication.class

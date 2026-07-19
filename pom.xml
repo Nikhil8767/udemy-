@@ -34,6 +34,7 @@
         <module>content-service</module>
         <module>enrollment-service</module>
         <module>frontend-service</module>
+        <module>ai-service</module>
     </modules>
 
     <dependencyManagement>

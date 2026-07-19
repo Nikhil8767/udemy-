@@ -50,6 +50,10 @@ public class JwtAuthenticationFilter implements WebFilter {
                 String email = jwtUtils.getEmail(token);
                 String role = jwtUtils.getRole(token);
                 String userId = jwtUtils.getUserId(token);
+                
+                if (path.startsWith("/api/v1/admin/") && !"ROLE_ADMIN".equalsIgnoreCase(role)) {
+                    return SecurityResponseWriter.writeResponse(exchange, HttpStatus.FORBIDDEN, "Access denied. Admin role required.");
+                }
 
                 JwtAuthenticationToken authentication = new JwtAuthenticationToken(email, token, List.of(new SimpleGrantedAuthority(role)), userId, accountStatus, role);
                 

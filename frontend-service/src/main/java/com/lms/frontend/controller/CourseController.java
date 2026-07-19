@@ -103,6 +103,7 @@ public class CourseController {
                 List<SectionResponse> sections = sectionsRes.getData();
                 
                 LessonResponse currentLesson = null;
+                List<LessonResponse> allLessons = new java.util.ArrayList<>();
                 for (SectionResponse section : sections) {
                     ApiResponse<List<LessonResponse>> lessonsRes = contentServiceClient.getSectionLessons(section.getId().toString());
                     if (lessonsRes != null && lessonsRes.isSuccess() && lessonsRes.getData() != null) {
@@ -117,21 +118,63 @@ public class CourseController {
                             } catch (Exception ex) {
                                 log.warn("Failed to load resources for lesson {}", lesson.getId());
                             }
+                            allLessons.add(lesson);
                         }
                         section.setLessons(lessons);
-                        
-                        for (LessonResponse lesson : lessons) {
-                            if (targetLessonId != null && lesson.getId().toString().equals(targetLessonId)) {
-                                currentLesson = lesson;
-                            } else if (currentLesson == null && targetLessonId == null) {
-                                currentLesson = lesson;
-                            }
+                    }
+                }
+                
+                for (LessonResponse lesson : allLessons) {
+                    if (targetLessonId != null && lesson.getId().toString().equals(targetLessonId)) {
+                        currentLesson = lesson;
+                    } else if (currentLesson == null && targetLessonId == null) {
+                        currentLesson = lesson;
+                    }
+                }
+
+                String previousLessonId = null;
+                String nextLessonId = null;
+                if (currentLesson != null) {
+                    int currentIndex = -1;
+                    for (int i = 0; i < allLessons.size(); i++) {
+                        if (allLessons.get(i).getId().equals(currentLesson.getId())) {
+                            currentIndex = i;
+                            break;
                         }
                     }
+                    if (currentIndex > 0) {
+                        previousLessonId = allLessons.get(currentIndex - 1).getId().toString();
+                    }
+                    if (currentIndex != -1 && currentIndex < allLessons.size() - 1) {
+                        nextLessonId = allLessons.get(currentIndex + 1).getId().toString();
+                    }
+                }
+                java.util.Map<java.util.UUID, Integer> lessonIndexes = new java.util.HashMap<>();
+                for (int i = 0; i < allLessons.size(); i++) {
+                    lessonIndexes.put(allLessons.get(i).getId(), i);
                 }
                 
                 model.addAttribute("sections", sections);
                 model.addAttribute("currentLesson", currentLesson);
+                model.addAttribute("allLessons", allLessons);
+                model.addAttribute("lessonIndexes", lessonIndexes);
+                model.addAttribute("allLessons", allLessons);
+                model.addAttribute("previousLessonId", previousLessonId);
+                model.addAttribute("nextLessonId", nextLessonId);
+
+                // Calculate first incomplete lesson index for sequential locking
+                int firstIncompleteLessonIndex = allLessons.size();
+                if (status != null && status.getCompletedLessonIds() != null) {
+                    for (int i = 0; i < allLessons.size(); i++) {
+                        if (!status.getCompletedLessonIds().contains(allLessons.get(i).getId())) {
+                            firstIncompleteLessonIndex = i;
+                            break;
+                        }
+                    }
+                } else {
+                    firstIncompleteLessonIndex = allLessons.size();
+                }
+                model.addAttribute("firstIncompleteLessonIndex", firstIncompleteLessonIndex);
             }
         } catch (Exception e) {
             log.error("Error loading learning page", e);

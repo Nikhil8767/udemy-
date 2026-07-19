@@ -66,8 +66,4 @@ public class DashboardController {
         return "tutor/dashboard";
     }
 
-    @GetMapping("/admin/dashboard")
-    public String adminDashboard() {
-        return "admin/dashboard";
-    }
 }

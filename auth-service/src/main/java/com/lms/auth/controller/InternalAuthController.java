@@ -29,15 +29,30 @@ public class InternalAuthController {
             @RequestParam(required = false) AccountStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        
-        Page<UUID> result = userCredentialRepository.findIdsByRoleAndStatus(
+        Page<UserCredential> result = userCredentialRepository.findByRoleAndStatus(
                 role, 
                 status, 
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
         );
 
+        java.util.List<InternalUserSearchResponse.AuthUserDto> users = result.getContent().stream()
+                .map(u -> InternalUserSearchResponse.AuthUserDto.builder()
+                        .id(u.getId())
+                        .email(u.getEmail())
+                        .role(u.getRole().name())
+                        .accountStatus(u.getAccountStatus().name())
+                        .createdAt(u.getCreatedAt())
+                        .lastLoginAt(u.getLastLogin())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+
+        java.util.List<UUID> userIds = result.getContent().stream()
+                .map(UserCredential::getId)
+                .collect(java.util.stream.Collectors.toList());
+
         return ResponseEntity.ok(InternalUserSearchResponse.builder()
-                .userIds(result.getContent())
+                .userIds(userIds)
+                .users(users)
                 .totalElements(result.getTotalElements())
                 .totalPages(result.getTotalPages())
                 .build());

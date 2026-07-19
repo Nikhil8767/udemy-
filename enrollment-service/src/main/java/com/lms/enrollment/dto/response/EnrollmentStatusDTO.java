@@ -19,4 +19,6 @@ public class EnrollmentStatusDTO {
     private UUID lastAccessedLessonId;
     private Integer completedLessons;
     private LocalDateTime enrollmentDate;
+    @Builder.Default
+    private java.util.Set<UUID> completedLessonIds = new java.util.HashSet<>();
 }

@@ -1,0 +1,8 @@
+com\lms\ai\service\AiService.class
+com\lms\ai\AiServiceApplication.class
+com\lms\ai\dto\AiChatRequest.class
+com\lms\ai\dto\AiChatResponse$AiChatResponseBuilder.class
+com\lms\ai\service\PromptTemplateService.class
+com\lms\ai\service\ConversationService.class
+com\lms\ai\controller\AiController.class
+com\lms\ai\dto\AiChatResponse.class

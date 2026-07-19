@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="ai-chat-widget">
+    <!-- Required libraries for Markdown and syntax highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Floating Action Button -->
+    <button id="ai-chat-btn" class="btn btn-primary shadow-lg d-flex align-items-center justify-content-center ai-btn-hover" 
+            style="position: fixed; bottom: 30px; right: 30px; z-index: 1050; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); border-radius: 50%; width: 56px; height: 56px; padding: 0;">
+        <i class="bi bi-robot fs-4"></i>
+    </button>
+
+    <!-- Chat Card -->
+    <div id="ai-chat-card" class="card shadow-lg d-none ai-glass-panel" 
+         style="position: fixed; bottom: 100px; right: 30px; width: 420px; height: 650px; z-index: 1050; border-radius: 1.25rem; overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); opacity: 0; transform: translateY(20px);">
+        
+        <!-- Header -->
+        <div class="card-header border-0 d-flex justify-content-between align-items-center p-3" style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); color: white;">
+            <div class="d-flex align-items-center">
+                <div class="position-relative">
+                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                        <span style="font-size: 1.5rem;">🤖</span>
+                    </div>
+                    <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle" style="right: 10px !important; bottom: 0px !important;" title="AI Online"></span>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold fs-6">Enterprise LMS AI Assistant</h5>
+                    <small class="opacity-75" style="font-size: 0.75rem;">Your Learning Companion</small>
+                </div>
+            </div>
+            <div class="d-flex gap-1">
+                <button id="ai-chat-clear-btn" class="btn btn-sm btn-link text-white text-decoration-none ai-header-btn" title="Clear Chat">
+                    <i class="bi bi-trash"></i>
+                </button>
+                <button id="ai-chat-minimize-btn" class="btn btn-sm btn-link text-white text-decoration-none ai-header-btn" title="Minimize">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
+                <button id="ai-chat-close-btn" class="btn btn-sm btn-link text-white text-decoration-none ai-header-btn" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Body -->
+        <div id="ai-chat-body" class="card-body bg-light position-relative" style="overflow-y: auto; height: 450px; padding: 1.25rem; scroll-behavior: smooth;">
+            
+            <div id="ai-chat-welcome" class="text-center mb-4 mt-2 slide-up-anim">
+                <div class="d-inline-block bg-white p-3 rounded-4 shadow-sm border mb-3">
+                    <h5 class="fw-bold text-dark mb-2">👋 Welcome to Enterprise LMS!</h5>
+                    <p class="text-muted small mb-0">I'm your AI Learning Assistant.</p>
+                </div>
+                
+                <p class="small text-muted fw-bold mb-3 text-start px-2">I can help you with:</p>
+                <div class="row g-2 px-1 text-start" id="ai-suggestions-container">
+                    <!-- Suggestions injected via JS based on role -->
+                </div>
+            </div>
+
+            <div id="ai-chat-messages" class="d-flex flex-column pb-4">
+                <!-- Messages go here -->
+            </div>
+
+            <!-- Scroll to bottom button -->
+            <button id="ai-scroll-bottom-btn" class="btn btn-sm btn-primary rounded-circle shadow position-absolute d-none" style="bottom: 10px; right: 20px; width: 35px; height: 35px; z-index: 10;">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+
+        <!-- Chat Footer -->
+        <div class="card-footer bg-white border-top p-0">
+            <div class="p-3">
+                <div class="input-group align-items-end bg-light rounded-4 border p-1 shadow-sm focus-ring-primary ai-input-container">
+                    <textarea id="ai-chat-input" class="form-control border-0 bg-transparent shadow-none" 
+                              placeholder="Ask me anything... (Shift+Enter for new line)" 
+                              rows="1" style="resize: none; max-height: 120px; overflow-y: auto; font-size: 0.95rem;"></textarea>
+                    <button id="ai-chat-send-btn" class="btn btn-primary rounded-circle ms-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; margin-bottom: 2px;">
+                        <i class="bi bi-send-fill fs-6"></i>
+                    </button>
+                </div>
+                <div class="d-flex justify-content-between mt-2 px-2">
+                    <small class="text-muted" style="font-size: 0.7rem;">AI can make mistakes. Verify important info.</small>
+                    <small id="ai-char-counter" class="text-muted" style="font-size: 0.7rem;">0 / 2000</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Styles -->
+    <style>
+        .ai-btn-hover:hover {
+            transform: scale(1.05);
+            box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+        }
+        .ai-glass-panel {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+        .ai-header-btn:hover {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+        .ai-input-container:focus-within {
+            border-color: #86b7fe !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        }
+        
+        /* Markdown Rendering Styles */
+        .ai-markdown p { margin-bottom: 0.75rem; }
+        .ai-markdown p:last-child { margin-bottom: 0; }
+        .ai-markdown pre { background-color: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; overflow-x: auto; }
+        .ai-markdown code { background-color: rgba(0,0,0,0.05); padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-family: monospace; color: #d63384;}
+        .ai-markdown pre code { background-color: transparent; padding: 0; color: inherit; }
+        .ai-markdown table { width: 100%; margin-bottom: 1rem; color: #212529; border-collapse: collapse; }
+        .ai-markdown th, .ai-markdown td { padding: 0.5rem; border: 1px solid #dee2e6; }
+        .ai-markdown th { background-color: rgba(0,0,0,0.03); }
+        .ai-markdown ul, .ai-markdown ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        
+        .ai-message-bubble {
+            max-width: 90%;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .ai-message-actions {
+            position: absolute;
+            bottom: -25px;
+            right: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .ai-message-bubble-wrapper:hover .ai-message-actions {
+            opacity: 1;
+        }
+        
+        .slide-up-anim {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .suggestion-chip {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .suggestion-chip:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        /* Custom Scrollbar */
+        #ai-chat-body::-webkit-scrollbar { width: 6px; }
+        #ai-chat-body::-webkit-scrollbar-track { background: transparent; }
+        #ai-chat-body::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 10px; }
+        #ai-chat-body::-webkit-scrollbar-thumb:hover { background: #6c757d; }
+    </style>
+
+    <!-- Script -->
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get user role from session safely
+            const userRole = /*[[${session.userRole} != null ? ${session.userRole} : 'ROLE_STUDENT']]*/ 'ROLE_STUDENT';
+            
+            // Elements
+            const chatBtn = document.getElementById('ai-chat-btn');
+            const chatCard = document.getElementById('ai-chat-card');
+            const minimizeBtn = document.getElementById('ai-chat-minimize-btn');
+            const closeBtn = document.getElementById('ai-chat-close-btn');
+            const clearBtn = document.getElementById('ai-chat-clear-btn');
+            const chatBody = document.getElementById('ai-chat-body');
+            const chatMessages = document.getElementById('ai-chat-messages');
+            const chatWelcome = document.getElementById('ai-chat-welcome');
+            const chatInput = document.getElementById('ai-chat-input');
+            const sendBtn = document.getElementById('ai-chat-send-btn');
+            const charCounter = document.getElementById('ai-char-counter');
+            const scrollBottomBtn = document.getElementById('ai-scroll-bottom-btn');
+            const suggestionsContainer = document.getElementById('ai-suggestions-container');
+            
+            let isSending = false;
+            let lastAiMessageText = '';
+
+            // Setup Marked.js Options
+            if (window.marked) {
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (window.hljs && hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return hljs.highlightAuto(code).value;
+                    },
+                    breaks: true,
+                    gfm: true
+                });
+            }
+
+            // Define suggestions based on role
+            const studentSuggestions = [
+                { icon: 'bi-code-slash', text: 'Explain Java' },
+                { icon: 'bi-braces', text: 'Explain Spring Boot' },
+                { icon: 'bi-database', text: 'Explain SQL' },
+                { icon: 'bi-diagram-3', text: 'Explain OOP' },
+                { icon: 'bi-question-square', text: 'Generate Interview Questions' },
+                { icon: 'bi-map', text: 'Recommend Study Plan' }
+            ];
+
+            const tutorSuggestions = [
+                { icon: 'bi-ui-checks', text: 'Generate Quiz' },
+                { icon: 'bi-file-earmark-text', text: 'Generate Assignment' },
+                { icon: 'bi-journal-plus', text: 'Generate Course Description' },
+                { icon: 'bi-list-stars', text: 'Suggest Curriculum' },
+                { icon: 'bi-pencil-square', text: 'Improve Lesson' }
+            ];
+
+            // Render Suggestions
+            const suggestions = userRole === 'ROLE_TUTOR' ? tutorSuggestions : studentSuggestions;
+            
+            // Randomly select 4 suggestions
+            const shuffled = [...suggestions].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 4);
+            
+            selected.forEach(s => {
+                const col = document.createElement('div');
+                col.className = 'col-6';
+                col.innerHTML = `
+                    <div class="bg-white border rounded-3 p-2 shadow-sm suggestion-chip h-100 d-flex flex-column justify-content-center" data-prompt="${s.text}">
+                        <div class="d-flex align-items-center">
+                            <i class="bi ${s.icon} text-primary me-2"></i>
+                            <span class="small fw-semibold" style="line-height: 1.2;">${s.text}</span>
+                        </div>
+                    </div>
+                `;
+                suggestionsContainer.appendChild(col);
+            });
+
+            // Handle suggestion click
+            suggestionsContainer.addEventListener('click', (e) => {
+                const chip = e.target.closest('.suggestion-chip');
+                if (chip && !isSending) {
+                    chatInput.value = chip.getAttribute('data-prompt');
+                    sendMessage();
+                }
+            });
+
+            // Toggle chat window
+            const toggleChat = (show) => {
+                if (show) {
+                    chatCard.classList.remove('d-none');
+                    // Trigger animation
+                    setTimeout(() => {
+                        chatCard.style.opacity = '1';
+                        chatCard.style.transform = 'translateY(0)';
+                        chatInput.focus();
+                        scrollToBottom();
+                    }, 10);
+                } else {
+                    chatCard.style.opacity = '0';
+                    chatCard.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        chatCard.classList.add('d-none');
+                    }, 300);
+                }
+            };
+
+            chatBtn.addEventListener('click', () => {
+                toggleChat(chatCard.classList.contains('d-none'));
+            });
+            
+            minimizeBtn.addEventListener('click', () => toggleChat(false));
+            closeBtn.addEventListener('click', () => toggleChat(false));
+            
+            // Close on Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !chatCard.classList.contains('d-none')) {
+                    toggleChat(false);
+                }
+            });
+
+            // Close when clicking outside
+            document.addEventListener('mousedown', (e) => {
+                if (!chatCard.classList.contains('d-none') && !chatCard.contains(e.target) && !chatBtn.contains(e.target)) {
+                    // toggleChat(false); // Optional: Uncomment to close when clicking outside
+                }
+            });
+
+            // Auto-resize textarea and Character counter
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight < 120 ? this.scrollHeight : 120) + 'px';
+                
+                const len = this.value.length;
+                charCounter.textContent = `${len} / 2000`;
+                if(len > 2000) charCounter.classList.add('text-danger');
+                else charCounter.classList.remove('text-danger');
+            });
+
+            // Clear chat
+            clearBtn.addEventListener('click', () => {
+                if(chatMessages.children.length === 0) return;
+                if(confirm('Are you sure you want to clear the conversation?')) {
+                    fetch('/ai/chat/history', { method: 'DELETE' })
+                        .then(() => {
+                            chatMessages.innerHTML = '';
+                            chatWelcome.style.display = 'block';
+                            addSystemDivider('Conversation Cleared');
+                        })
+                        .catch(err => console.error('Failed to clear history:', err));
+                }
+            });
+
+            // Scroll events
+            chatBody.addEventListener('scroll', () => {
+                if (chatBody.scrollTop + chatBody.clientHeight < chatBody.scrollHeight - 50) {
+                    scrollBottomBtn.classList.remove('d-none');
+                } else {
+                    scrollBottomBtn.classList.add('d-none');
+                }
+            });
+
+            scrollBottomBtn.addEventListener('click', () => scrollToBottom(true));
+
+            function scrollToBottom(smooth = false) {
+                if (smooth) {
+                    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
+                } else {
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+            }
+
+            function formatTime() {
+                return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function addSystemDivider(text) {
+                const div = document.createElement('div');
+                div.className = 'text-center my-3';
+                div.innerHTML = `<span class="badge bg-light text-muted fw-normal border px-3 py-1 rounded-pill">${text} • ${formatTime()}</span>`;
+                chatMessages.appendChild(div);
+                scrollToBottom(true);
+            }
+
+            // Copy to clipboard
+            window.copyMessage = function(btn) {
+                const text = btn.getAttribute('data-text');
+                navigator.clipboard.writeText(text).then(() => {
+                    const icon = btn.querySelector('i');
+                    icon.className = 'bi bi-check2 text-success';
+                    setTimeout(() => icon.className = 'bi bi-clipboard', 2000);
+                });
+            };
+
+            // Regenerate last response
+            window.regenerateResponse = function() {
+                if (isSending || !lastAiMessageText) return;
+                // Simple implementation: resend last user message if we tracked it, 
+                // but since we only have `lastAiMessageText`, let's just show an alert for now.
+                alert('Regenerate is coming soon!');
+            };
+
+            // Send message
+            const sendMessage = () => {
+                const text = chatInput.value.trim();
+                if(!text || isSending || text.length > 2000) return;
+                
+                isSending = true;
+                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                sendBtn.disabled = true;
+                chatInput.disabled = true;
+
+                // Hide welcome screen
+                if (chatWelcome.style.display !== 'none') {
+                    chatWelcome.style.display = 'none';
+                    addSystemDivider('Today');
+                }
+                
+                // Append user message
+                appendMessage(text, 'user');
+                
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+                charCounter.textContent = '0 / 2000';
+                
+                // Show typing indicator
+                const typingId = showTypingIndicator();
+                scrollToBottom(true);
+                
+                // Fetch AI response
+                fetch('/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                })
+                .then(res => {
+                    if(!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
+                .then(data => {
+                    removeTypingIndicator(typingId);
+                    lastAiMessageText = data.response;
+                    appendMessage(data.response, 'ai');
+                })
+                .catch(err => {
+                    removeTypingIndicator(typingId);
+                    const errorCard = `<div class="text-center p-2"><i class="bi bi-exclamation-triangle-fill fs-3 text-danger mb-2"></i><h6 class="fw-bold mb-1">Service Unavailable</h6><p class="small mb-0 opacity-75">The AI Assistant is currently offline. Please check your connection and try again.</p></div>`;
+                    appendMessage(errorCard, 'ai', true);
+                    console.error('AI Chat Error:', err);
+                })
+                .finally(() => {
+                    isSending = false;
+                    sendBtn.innerHTML = '<i class="bi bi-send-fill fs-6"></i>';
+                    sendBtn.disabled = false;
+                    chatInput.disabled = false;
+                    chatInput.focus();
+                });
+            };
+            
+            sendBtn.addEventListener('click', sendMessage);
+            
+            chatInput.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            function appendMessage(text, sender, isError = false) {
+                const msgWrapper = document.createElement('div');
+                msgWrapper.className = `mb-4 w-100 d-flex flex-column ${sender === 'user' ? 'align-items-end' : 'align-items-start'} ai-message-bubble-wrapper`;
+                
+                const timeStr = formatTime();
+                
+                if (sender === 'user') {
+                    msgWrapper.innerHTML = `
+                        <div class="ai-message-bubble bg-primary text-white rounded-4 shadow-sm p-3" style="border-bottom-right-radius: 4px !important;">
+                            <div style="white-space: pre-wrap; word-break: break-word;">${escapeHTML(text)}</div>
+                        </div>
+                        <small class="text-muted mt-1 pe-1" style="font-size: 0.7rem;">${timeStr}</small>
+                    `;
+                } else {
+                    let parsedContent = text;
+                    if (!isError && window.marked) {
+                        parsedContent = marked.parse(text);
+                    }
+                    
+                    const errorClass = isError ? 'text-danger bg-danger bg-opacity-10 border-danger' : 'bg-white border text-dark';
+                    const iconClass = isError ? 'bi-exclamation-triangle-fill text-danger' : 'bi-robot text-primary';
+
+                    msgWrapper.innerHTML = `
+                        <div class="d-flex align-items-start w-100">
+                            <div class="bg-white border rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0 shadow-sm" style="width: 32px; height: 32px; margin-top: 2px;">
+                                <i class="bi ${iconClass}"></i>
+                            </div>
+                            <div class="position-relative ai-message-bubble ${errorClass} rounded-4 shadow-sm p-3" style="border-top-left-radius: 4px !important; width: 100%;">
+                                <div class="ai-markdown" style="word-break: break-word; overflow-x: auto;">${parsedContent}</div>
+                                
+                                ${!isError ? `
+                                <div class="ai-message-actions d-flex gap-1 bg-white rounded-pill shadow-sm border p-1">
+                                    <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width:24px; height:24px;" onclick="copyMessage(this)" data-text="${escapeHTMLAttribute(text)}" title="Copy">
+                                        <i class="bi bi-clipboard" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-light rounded-circle p-1 d-flex align-items-center justify-content-center" style="width:24px; height:24px;" onclick="regenerateResponse()" title="Regenerate">
+                                        <i class="bi bi-arrow-repeat" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 ps-5" style="font-size: 0.7rem;">${timeStr}</small>
+                    `;
+                }
+                
+                chatMessages.appendChild(msgWrapper);
+                scrollToBottom(true);
+            }
+            
+            function showTypingIndicator() {
+                const id = 'typing-' + Date.now();
+                const typingWrapper = document.createElement('div');
+                typingWrapper.id = id;
+                typingWrapper.className = 'mb-4 w-100 d-flex flex-column align-items-start';
+                
+                typingWrapper.innerHTML = `
+                    <div class="d-flex align-items-center w-100">
+                        <div class="bg-white border rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0 shadow-sm" style="width: 32px; height: 32px;">
+                            <i class="bi bi-robot text-primary"></i>
+                        </div>
+                        <div class="ai-message-bubble bg-white border text-muted rounded-4 shadow-sm p-3 d-flex align-items-center" style="border-top-left-radius: 4px !important;">
+                            <span class="small me-2">AI is thinking</span>
+                            <div class="spinner-grow text-primary mx-1" role="status" style="width: 0.4rem; height: 0.4rem; animation-duration: 1s;"></div>
+                            <div class="spinner-grow text-primary mx-1" role="status" style="width: 0.4rem; height: 0.4rem; animation-duration: 1s; animation-delay: 0.2s;"></div>
+                            <div class="spinner-grow text-primary mx-1" role="status" style="width: 0.4rem; height: 0.4rem; animation-duration: 1s; animation-delay: 0.4s;"></div>
+                        </div>
+                    </div>
+                `;
+                chatMessages.appendChild(typingWrapper);
+                return id;
+            }
+            
+            function removeTypingIndicator(id) {
+                const el = document.getElementById(id);
+                if(el) el.remove();
+            }
+
+            function escapeHTML(str) {
+                return str.replace(/[&<>'"]/g, 
+                    tag => ({
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        "'": '&#39;',
+                        '"': '&quot;'
+                    }[tag])
+                );
+            }
+            
+            function escapeHTMLAttribute(str) {
+                return str.replace(/"/g, '&quot;');
+            }
+        });
+    </script>
+</div>
+</body>
+</html>

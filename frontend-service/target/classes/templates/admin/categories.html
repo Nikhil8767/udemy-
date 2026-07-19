@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/admin-layout}">
+<head>
+    <title>Category Management | Admin Dashboard</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <div>
+                <h1 class="h3 mb-0 fw-bold text-dark">Category Management</h1>
+                <p class="text-muted small mb-0">Manage course categories and subjects</p>
+            </div>
+            <div>
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <i class="bi bi-plus-lg me-2"></i> Add Category
+                </button>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+        <div th:if="${errorMessage != null}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage != null}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <form method="get" th:action="@{/admin/categories}" class="row g-3 align-items-end">
+                    <div class="col-md-9">
+                        <label class="form-label small fw-bold text-muted mb-1">Search Categories</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="search" class="form-control bg-light border-0" placeholder="Category Name...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill">Filter</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card-body p-0 mt-4">
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Category</th>
+                                <th>Status</th>
+                                <th>Courses Assigned</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${categoriesPage == null or categoriesPage.content == null or categoriesPage.content.empty}">
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bi bi-folder-x" style="font-size: 3rem;"></i>
+                                        <p class="mt-2">No categories found.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:each="category : ${categoriesPage?.content}">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded text-primary d-flex align-items-center justify-content-center me-3 fs-5" style="width: 45px; height: 45px;">
+                                            <i th:class="${category.icon != null ? category.icon : 'bi bi-folder'}"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold text-dark" th:text="${category.name}">Name</h6>
+                                            <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;" th:text="${category.description}">Description</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:if="${category.active}" class="badge bg-success rounded-pill px-3">Active</span>
+                                    <span th:unless="${category.active}" class="badge bg-secondary rounded-pill px-3">Inactive</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-3" th:text="${category.courseCount}">0</span>
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                            <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2 text-primary"></i> Edit</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> Delete</button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="card-footer bg-white border-top-0 py-3 d-flex justify-content-between align-items-center" th:if="${categoriesPage != null and categoriesPage.totalPages > 1}">
+                <span class="text-muted small">Showing page <span th:text="${currentPage + 1}"></span> of <span th:text="${categoriesPage.totalPages}"></span></span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link rounded-pill px-3 me-2" th:href="@{/admin/categories(page=${currentPage - 1})}">Previous</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == categoriesPage.totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link rounded-pill px-3" th:href="@{/admin/categories(page=${currentPage + 1})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
